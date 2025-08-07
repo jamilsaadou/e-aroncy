@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from "next/link";
-import { Shield, ChevronDown, BookOpen, Image, FileText, Wrench } from "lucide-react";
+import Image from "next/image";
+import { Shield, ChevronDown, BookOpen, Image as ImageIcon, FileText, Wrench } from "lucide-react";
 
 export default function Header() {
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
@@ -18,7 +19,7 @@ export default function Header() {
       title: "Infographies",
       description: "Visuels percutants",
       href: "/ressources/infographies",
-      icon: <Image className="h-5 w-5" />
+      icon: <ImageIcon className="h-5 w-5" />
     },
     {
       title: "Articles",
@@ -40,23 +41,24 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-3">
             <Link href="/" className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-lg">
-                <Shield className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                E-ARONCY
-              </span>
+              <Image
+                src="/assets/logos/Logo e-aroncy.png"
+                alt="E-ARONCY Logo"
+                width={120}
+                height={40}
+                className="h-10 w-auto"
+              />
             </Link>
           </div>
           
-          <nav className="hidden md:flex space-x-8">
-            <Link href="/" className="text-slate-700 hover:text-blue-600 transition-colors">
+          <nav className="hidden md:flex space-x-8 font-body">
+            <Link href="/" className="text-slate-700 hover:text-aroncy-blue transition-colors">
               Accueil
             </Link>
-            <Link href="/knowledge-base" className="text-slate-700 hover:text-blue-600 transition-colors">
+            <Link href="/knowledge-base" className="text-slate-700 hover:text-aroncy-blue transition-colors">
               Formation
             </Link>
-            <Link href="/diagnostic" className="text-slate-700 hover:text-blue-600 transition-colors">
+            <Link href="/diagnostic" className="text-slate-700 hover:text-aroncy-blue transition-colors">
               Diagnostic
             </Link>
             
@@ -66,7 +68,7 @@ export default function Header() {
               onMouseEnter={() => setIsResourcesOpen(true)}
               onMouseLeave={() => setIsResourcesOpen(false)}
             >
-              <button className="flex items-center text-slate-700 hover:text-blue-600 transition-colors">
+              <button className="flex items-center text-slate-700 hover:text-aroncy-blue transition-colors">
                 Ressources
                 <ChevronDown className={`ml-1 h-4 w-4 transition-transform ${isResourcesOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -76,7 +78,7 @@ export default function Header() {
                 isResourcesOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'
               }`}>
                 <div className="px-4 pb-3 border-b border-slate-100">
-                  <Link href="/ressources" className="text-sm font-medium text-slate-900 hover:text-blue-600 transition-colors">
+                  <Link href="/ressources" className="text-sm font-medium text-slate-900 hover:text-aroncy-blue transition-colors">
                     Toutes les ressources
                   </Link>
                 </div>
@@ -85,15 +87,15 @@ export default function Header() {
                     <Link
                       key={index}
                       href={item.href}
-                      className="flex items-start px-4 py-3 hover:bg-slate-50 transition-colors group"
+                      className="flex items-start px-4 py-3 hover:bg-aroncy-light-gray transition-colors group"
                     >
-                      <div className="flex-shrink-0 p-2 bg-slate-100 rounded-lg group-hover:bg-blue-100 transition-colors">
-                        <div className="text-slate-600 group-hover:text-blue-600 transition-colors">
+                      <div className="flex-shrink-0 p-2 bg-slate-100 rounded-lg group-hover:bg-aroncy-blue group-hover:bg-opacity-10 transition-colors">
+                        <div className="text-slate-600 group-hover:text-aroncy-blue transition-colors">
                           {item.icon}
                         </div>
                       </div>
                       <div className="ml-3">
-                        <div className="text-sm font-medium text-slate-900 group-hover:text-blue-600 transition-colors">
+                        <div className="text-sm font-medium text-slate-900 group-hover:text-aroncy-blue transition-colors">
                           {item.title}
                         </div>
                         <div className="text-xs text-slate-500">
@@ -106,19 +108,19 @@ export default function Header() {
               </div>
             </div>
             
-            <Link href="/a-propos" className="text-slate-700 hover:text-blue-600 transition-colors">
+            <Link href="/a-propos" className="text-slate-700 hover:text-aroncy-blue transition-colors">
               À propos
             </Link>
-            <Link href="#" className="text-slate-700 hover:text-blue-600 transition-colors">
+            <Link href="#" className="text-slate-700 hover:text-aroncy-blue transition-colors">
               Contact
             </Link>
           </nav>
 
-          <div className="flex items-center space-x-4">
-            <Link href="/login" className="text-slate-700 hover:text-blue-600 transition-colors">
+          <div className="flex items-center space-x-4 font-body">
+            <Link href="/login" className="text-slate-700 hover:text-aroncy-blue transition-colors">
               Connexion
             </Link>
-            <Link href="/register" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all">
+            <Link href="/register" className="bg-aroncy-gradient text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all font-medium">
               S'inscrire
             </Link>
           </div>

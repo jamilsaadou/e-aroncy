@@ -652,28 +652,7 @@ export default function InteractiveAfricaMap() {
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 text-white">
-          <h3 className="font-semibold mb-4">Statistiques continentales</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-blue-100">Pays couverts</span>
-              <span className="font-semibold">{Object.keys(countryData).length}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-blue-100">Cadre excellent</span>
-              <span className="font-semibold">{countriesByStatus.excellent.length}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-blue-100">Cadre bon</span>
-              <span className="font-semibold">{countriesByStatus.good.length}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-blue-100">Mises à jour</span>
-              <span className="font-semibold">Mensuelle</span>
-            </div>
-          </div>
-        </div>
+     
       </div>
     </div>
   );

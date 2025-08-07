@@ -46,192 +46,322 @@ export default function KnowledgeBase() {
         </div>
       </section>
 
-      {/* Formations Section */}
+      {/* Programme de Formation Structuré */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
-              Formations interactives
+            <div className="inline-flex items-center bg-aroncy-blue bg-opacity-10 text-aroncy-blue px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Award className="h-4 w-4 mr-2" />
+              Programme de Formation E-ARONCY
+            </div>
+            <h2 className="text-3xl lg:text-4xl font-display font-bold text-slate-900 mb-4">
+              Formation en Cybersécurité
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Développez vos compétences avec nos formations pratiques et certifiantes
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto mb-6">
+              <strong>Objectif :</strong> Renforcer les compétences pratiques et théoriques en cybersécurité
             </p>
+            <div className="bg-aroncy-light-gray rounded-xl p-6 max-w-4xl mx-auto">
+              <h3 className="font-display font-semibold text-slate-900 mb-3">Contenu pédagogique (modules) :</h3>
+              <p className="text-slate-700">
+                Programme complet en 5 modules progressifs couvrant les aspects essentiels de la cybersécurité 
+                pour les organisations de la société civile en Afrique de l'Ouest.
+              </p>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Formation VPS */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+            {/* Module 1 */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 group">
               <div className="relative h-48 overflow-hidden">
                 <Image
-                  src="/assets/images/vps-formation.jpeg"
-                  alt="Formation utilisation des VPS"
+                  src="/assets/images/africa-map.jpg"
+                  alt="Introduction à la cybersécurité pour les ONG en Afrique"
                   width={400}
                   height={200}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
-                <div className="absolute top-4 left-4">
-                  <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-medium">
-                    Formation
-                  </span>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
-                    <Play className="h-8 w-8 text-white" />
+                <div className="absolute inset-0 bg-aroncy-gradient opacity-80"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white p-4">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 mx-auto mb-3 w-fit">
+                      <BookOpen className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-display font-bold mb-1">Module 1</h3>
+                    <h4 className="text-sm font-semibold">Introduction à la cybersécurité pour les ONG</h4>
                   </div>
                 </div>
               </div>
               <div className="p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4 text-slate-500" />
-                    <span className="text-sm text-slate-500">1,245 inscrits</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="text-sm text-slate-600">4.8</span>
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                  Utilisation sécurisée des VPS
-                </h3>
-                <p className="text-slate-600 text-sm mb-4">
-                  Apprenez à configurer, sécuriser et maintenir un serveur privé virtuel pour votre organisation. 
-                  Configuration, pare-feu, monitoring et bonnes pratiques.
+                <p className="text-slate-600 text-sm mb-4 leading-relaxed">
+                  Définitions clés, enjeux spécifiques pour les ONG, menaces courantes en Afrique.
                 </p>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-4 text-sm text-slate-500">
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
-                      3h 30min
-                    </div>
-                    <div className="flex items-center">
-                      <Award className="h-4 w-4 mr-1" />
-                      Certificat
-                    </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Clock className="h-3 w-3 mr-2 text-aroncy-blue" />
+                    2h 30min
+                  </div>
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Users className="h-3 w-3 mr-2 text-aroncy-blue" />
+                    Niveau débutant
+                  </div>
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Award className="h-3 w-3 mr-2 text-aroncy-blue" />
+                    Certificat inclus
                   </div>
                 </div>
-                <Link href="#" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center">
-                  <Play className="h-4 w-4 mr-2" />
-                  Commencer la formation
+               
+                <Link href="/knowledge-base/module-1" className="w-full bg-aroncy-blue text-white py-2 px-4 rounded-lg font-medium hover:bg-aroncy-orange transition-colors text-center text-sm block">
+                  Commencer le module
                 </Link>
               </div>
             </div>
 
-            {/* Formation Protection des comptes */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+            {/* Module 2 */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 group">
               <div className="relative h-48 overflow-hidden">
                 <Image
                   src="/assets/images/compte-protection.jpeg"
-                  alt="Formation protection des comptes"
+                  alt="Sécurité des données personnelles"
                   width={400}
                   height={200}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
-                <div className="absolute top-4 left-4">
-                  <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium">
-                    Formation
-                  </span>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
-                    <Play className="h-8 w-8 text-white" />
+                <div className="absolute inset-0 bg-aroncy-green opacity-80"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white p-4">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 mx-auto mb-3 w-fit">
+                      <Shield className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-display font-bold mb-1">Module 2</h3>
+                    <h4 className="text-sm font-semibold">Sécurité des données personnelles</h4>
                   </div>
                 </div>
               </div>
               <div className="p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4 text-slate-500" />
-                    <span className="text-sm text-slate-500">2,156 inscrits</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="text-sm text-slate-600">4.9</span>
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                  Protection des comptes utilisateurs
-                </h3>
-                <p className="text-slate-600 text-sm mb-4">
-                  Maîtrisez les techniques de protection des comptes : authentification forte, 
-                  gestion des mots de passe, 2FA et détection des compromissions.
+                <p className="text-slate-600 text-sm mb-4 leading-relaxed">
+                  Principes de la protection des données, obligations légales, bonnes pratiques.
                 </p>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-4 text-sm text-slate-500">
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
-                      2h 45min
-                    </div>
-                    <div className="flex items-center">
-                      <Award className="h-4 w-4 mr-1" />
-                      Certificat
-                    </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Clock className="h-3 w-3 mr-2 text-aroncy-green" />
+                    3h 15min
+                  </div>
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Users className="h-3 w-3 mr-2 text-aroncy-green" />
+                    Niveau intermédiaire
+                  </div>
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Award className="h-3 w-3 mr-2 text-aroncy-green" />
+                    Certificat RGPD
                   </div>
                 </div>
-                <Link href="#" className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-all flex items-center justify-center">
-                  <Play className="h-4 w-4 mr-2" />
-                  Commencer la formation
+                
+                <Link href="#" className="w-full bg-aroncy-green text-white py-2 px-4 rounded-lg font-medium hover:bg-aroncy-orange transition-colors text-center text-sm block">
+                  Commencer le module
                 </Link>
               </div>
             </div>
 
-            {/* Formation Phishing */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+            {/* Module 3 */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 group">
               <div className="relative h-48 overflow-hidden">
                 <Image
                   src="/assets/images/phishing-formation.jpg"
-                  alt="Formation anti-phishing"
+                  alt="Phishing, ransomware et menaces fréquentes"
                   width={400}
                   height={200}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
-                <div className="absolute top-4 left-4">
-                  <span className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-medium">
-                    Formation
-                  </span>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
-                    <Play className="h-8 w-8 text-white" />
+                <div className="absolute inset-0 bg-red-600 opacity-80"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white p-4">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 mx-auto mb-3 w-fit">
+                      <Eye className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-display font-bold mb-1">Module 3</h3>
+                    <h4 className="text-sm font-semibold">Phishing, ransomware et menaces fréquentes</h4>
                   </div>
                 </div>
               </div>
               <div className="p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4 text-slate-500" />
-                    <span className="text-sm text-slate-500">3,421 inscrits</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="text-sm text-slate-600">4.7</span>
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                  Prévention du phishing
-                </h3>
-                <p className="text-slate-600 text-sm mb-4">
-                  Identifiez et prévenez les attaques de phishing. Techniques de reconnaissance, 
-                  sensibilisation des équipes et mise en place de protections efficaces.
+                <p className="text-slate-600 text-sm mb-4 leading-relaxed">
+                  Études de cas réels, quiz de détection d'attaques, simulations interactives.
                 </p>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-4 text-sm text-slate-500">
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
-                      1h 50min
-                    </div>
-                    <div className="flex items-center">
-                      <Award className="h-4 w-4 mr-1" />
-                      Certificat
-                    </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Clock className="h-3 w-3 mr-2 text-red-600" />
+                    2h 45min
+                  </div>
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Users className="h-3 w-3 mr-2 text-red-600" />
+                    Tous niveaux
+                  </div>
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Award className="h-3 w-3 mr-2 text-red-600" />
+                    Simulation pratique
                   </div>
                 </div>
-                <Link href="#" className="w-full bg-gradient-to-r from-red-600 to-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:from-red-700 hover:to-orange-700 transition-all flex items-center justify-center">
-                  <Play className="h-4 w-4 mr-2" />
-                  Commencer la formation
+               
+                <Link href="#" className="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-aroncy-orange transition-colors text-center text-sm block">
+                  Commencer le module
+                </Link>
+              </div>
+            </div>
+
+            {/* Module 4 */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 group">
+              <div className="relative h-48 overflow-hidden">
+                <Image
+                  src="/assets/images/vps-formation.jpeg"
+                  alt="Sécurisation des équipements et du réseau"
+                  width={400}
+                  height={200}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-purple-600 opacity-80"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white p-4">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 mx-auto mb-3 w-fit">
+                      <Shield className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-display font-bold mb-1">Module 4</h3>
+                    <h4 className="text-sm font-semibold">Sécurisation des équipements et du réseau</h4>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-slate-600 text-sm mb-4 leading-relaxed">
+                  Checklists de configuration sécurisée, gestion des connexions et mots de passe.
+                </p>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Clock className="h-3 w-3 mr-2 text-purple-600" />
+                    4h 00min
+                  </div>
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Users className="h-3 w-3 mr-2 text-purple-600" />
+                    Niveau avancé
+                  </div>
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Award className="h-3 w-3 mr-2 text-purple-600" />
+                    Certification technique
+                  </div>
+                </div>
+               
+                <Link href="#" className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-aroncy-orange transition-colors text-center text-sm block">
+                  Commencer le module
+                </Link>
+              </div>
+            </div>
+
+            {/* Module 5 */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 group">
+              <div className="relative h-48 overflow-hidden">
+                <Image
+                  src="/assets/images/team-apropos.jpeg"
+                  alt="Cyber-urgence : comment réagir ?"
+                  width={400}
+                  height={200}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-aroncy-orange opacity-80"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white p-4">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 mx-auto mb-3 w-fit">
+                      <Shield className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-display font-bold mb-1">Module 5</h3>
+                    <h4 className="text-sm font-semibold">Cyber-urgence : comment réagir ?</h4>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-slate-600 text-sm mb-4 leading-relaxed">
+                  Procédures d'intervention en cas d'incident, plan de continuité d'activité rapide.
+                </p>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Clock className="h-3 w-3 mr-2 text-aroncy-orange" />
+                    1h 30min
+                  </div>
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Users className="h-3 w-3 mr-2 text-aroncy-orange" />
+                    Tous niveaux
+                  </div>
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Award className="h-3 w-3 mr-2 text-aroncy-orange" />
+                    Plan d'action
+                  </div>
+                </div>
+                
+                <Link href="#" className="w-full bg-aroncy-orange text-white py-2 px-4 rounded-lg font-medium hover:bg-aroncy-blue transition-colors text-center text-sm block">
+                  Commencer le module
+                </Link>
+              </div>
+            </div>
+
+            {/* Module Bonus - Certification Complète */}
+            <div className="bg-white rounded-2xl shadow-lg border-2 border-aroncy-blue overflow-hidden hover:shadow-xl transition-all duration-300 group md:col-span-2 lg:col-span-1">
+              <div className="bg-aroncy-gradient p-4 text-white">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-display font-bold">Certification</h3>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
+                    <Award className="h-5 w-5 text-white" />
+                  </div>
+                </div>
+                <h4 className="text-sm font-semibold">Programme complet E-ARONCY</h4>
+              </div>
+              <div className="p-6">
+                <p className="text-slate-600 text-sm mb-4 leading-relaxed">
+                  Complétez tous les modules pour obtenir votre certification officielle E-ARONCY.
+                </p>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Clock className="h-3 w-3 mr-2 text-aroncy-blue" />
+                    14h 00min total
+                  </div>
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Users className="h-3 w-3 mr-2 text-aroncy-blue" />
+                    Progression complète
+                  </div>
+                  <div className="flex items-center text-xs text-slate-600">
+                    <Award className="h-3 w-3 mr-2 text-aroncy-blue" />
+                    Certificat officiel
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <div className="bg-aroncy-light-gray rounded-lg p-3">
+                    <div className="text-xs text-slate-600 mb-1">Progression</div>
+                    <div className="w-full bg-slate-200 rounded-full h-2">
+                      <div className="bg-aroncy-gradient h-2 rounded-full" style={{width: '0%'}}></div>
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">0/5 modules complétés</div>
+                  </div>
+                </div>
+                <Link href="#" className="w-full bg-aroncy-gradient text-white py-2 px-4 rounded-lg font-medium hover:opacity-90 transition-all text-center text-sm block">
+                  Voir la progression
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Progression et Certification */}
+          <div className="mt-12 bg-aroncy-light-gray rounded-2xl p-8">
+            <div className="text-center">
+              <h3 className="text-2xl font-display font-bold text-slate-900 mb-4">
+                Progression et Certification
+              </h3>
+              <p className="text-slate-600 mb-6 max-w-3xl mx-auto">
+                Complétez les 5 modules pour obtenir votre certification E-ARONCY en cybersécurité pour les ONG. 
+                Chaque module inclut des évaluations pratiques et des études de cas réels.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="#" className="bg-aroncy-gradient text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-all inline-flex items-center justify-center">
+                  <Play className="h-5 w-5 mr-2" />
+                  Commencer la formation complète
+                </Link>
+                <Link href="/diagnostic" className="border-2 border-aroncy-blue text-aroncy-blue px-8 py-3 rounded-lg font-semibold hover:bg-aroncy-blue hover:text-white transition-all text-center">
+                  Évaluer mon niveau
                 </Link>
               </div>
             </div>
@@ -559,13 +689,16 @@ export default function KnowledgeBase() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-lg">
-                  <Shield className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-xl font-bold">E-ARONCY</span>
+                <Image
+                  src="/assets/logos/Logo e-aroncy.png"
+                  alt="E-ARONCY Logo"
+                  width={100}
+                  height={32}
+                  className="h-8 w-auto"
+                />
               </div>
               <p className="text-slate-400">
-                Plateforme collaborative pour la cybersécurité en Afrique de l'Ouest
+                Alliance Régionale pour la Cybersécurité des ONG en Afrique de l'Ouest
               </p>
             </div>
             

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Shield, Users, BookOpen, Globe, ChevronRight, Star, Award, Zap } from "lucide-react";
+import { Shield, Users, BookOpen, Globe, ChevronRight, Star, Award, Zap, GraduationCap, Lock, Heart } from "lucide-react";
 import InteractiveAfricaMap from "@/components/InteractiveAfricaMap";
 import HeroSlider from "@/components/HeroSlider";
 import Header from "@/components/Header";
@@ -38,40 +38,140 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Slogan Section */}
+      {/* Enhanced Slogan Section */}
       <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Content */}
-            <div className="order-2 lg:order-1">
-              <div className="text-center lg:text-left">
-                <h2 className="text-9xl lg:text-5xl font-bold text-slate-900 mb-6">
-                  <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    Apprend.
-                  </span><br></br><br></br>
-                  <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                    Protège.
-                  </span><br></br><br></br>
-                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    Partage.
-                  </span>
-                </h2>
-                
-          
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-display font-bold text-slate-900 mb-4">
+              Notre approche en trois piliers
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              E-ARONCY accompagne les ONG d'Afrique de l'Ouest dans leur transformation numérique sécurisée
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-8 mb-16">
+            {/* Apprend */}
+            <div className="group bg-white rounded-2xl p-8 shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+              <div className="text-center">
+                <div className="bg-aroncy-gradient p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <GraduationCap className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-3xl font-display font-bold mb-4">
+                  <span className="text-aroncy-blue">Apprend</span>
+                </h3>
+                <p className="text-slate-600 mb-6 leading-relaxed">
+                  Formations progressives adaptées aux réalités des ONG africaines. 
+                  Modules interactifs, certifications reconnues et accompagnement personnalisé.
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-center text-sm text-slate-700">
+                    <div className="w-2 h-2 bg-aroncy-blue rounded-full mr-3"></div>
+                    Cybersécurité fondamentale
+                  </div>
+                  <div className="flex items-center text-sm text-slate-700">
+                    <div className="w-2 h-2 bg-aroncy-blue rounded-full mr-3"></div>
+                    Protection des données
+                  </div>
+                  <div className="flex items-center text-sm text-slate-700">
+                    <div className="w-2 h-2 bg-aroncy-blue rounded-full mr-3"></div>
+                    Outils numériques sécurisés
+                  </div>
+                </div>
+                <Link href="/knowledge-base" className="inline-flex items-center mt-6 text-aroncy-blue font-medium hover:text-aroncy-orange transition-colors">
+                  Découvrir les formations
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Link>
               </div>
             </div>
 
-            {/* Image */}
-            <div className="order-1 lg:order-2">
-              <div className="relative">
-                <Image
-                  src="/assets/images/im.jpg"
-                  alt="Équipe cybersécurité E-ARONCY"
-                  width={600}
-                  height={400}
-                  className="w-full h-auto object-cover rounded-2xl shadow-lg"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
+            {/* Protège */}
+            <div className="group bg-white rounded-2xl p-8 shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+              <div className="text-center">
+                <div className="bg-aroncy-gradient p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Lock className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-3xl font-display font-bold mb-4">
+                  <span className="text-aroncy-green">Protège</span>
+                </h3>
+                <p className="text-slate-600 mb-6 leading-relaxed">
+                  Solutions pratiques et outils de protection adaptés aux contraintes budgétaires 
+                  et techniques des organisations de la société civile.
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-center text-sm text-slate-700">
+                    <div className="w-2 h-2 bg-aroncy-green rounded-full mr-3"></div>
+                    Diagnostic de sécurité
+                  </div>
+                  <div className="flex items-center text-sm text-slate-700">
+                    <div className="w-2 h-2 bg-aroncy-green rounded-full mr-3"></div>
+                    Outils de protection gratuits
+                  </div>
+                  <div className="flex items-center text-sm text-slate-700">
+                    <div className="w-2 h-2 bg-aroncy-green rounded-full mr-3"></div>
+                    Conformité réglementaire
+                  </div>
+                </div>
+                <Link href="/diagnostic" className="inline-flex items-center mt-6 text-aroncy-green font-medium hover:text-aroncy-orange transition-colors">
+                  Faire un diagnostic
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Partage */}
+            <div className="group bg-white rounded-2xl p-8 shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+              <div className="text-center">
+                <div className="bg-aroncy-gradient p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Heart className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-3xl font-display font-bold mb-4">
+                  <span className="text-aroncy-orange">Partage</span>
+                </h3>
+                <p className="text-slate-600 mb-6 leading-relaxed">
+                  Communauté collaborative d'entraide et d'échange d'expériences. 
+                  Forum actif, groupes de travail et réseau de soutien mutuel.
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-center text-sm text-slate-700">
+                    <div className="w-2 h-2 bg-aroncy-orange rounded-full mr-3"></div>
+                    Forum collaboratif
+                  </div>
+                  <div className="flex items-center text-sm text-slate-700">
+                    <div className="w-2 h-2 bg-aroncy-orange rounded-full mr-3"></div>
+                    Groupes d'entraide
+                  </div>
+                  <div className="flex items-center text-sm text-slate-700">
+                    <div className="w-2 h-2 bg-aroncy-orange rounded-full mr-3"></div>
+                    Veille collaborative
+                  </div>
+                </div>
+                <Link href="/register" className="inline-flex items-center mt-6 text-aroncy-orange font-medium hover:text-aroncy-blue transition-colors">
+                  Rejoindre la communauté
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Image Section */}
+          <div className="relative max-w-3xl mx-auto">
+            <Image
+              src="/assets/images/im.jpg"
+              alt="Équipe cybersécurité E-ARONCY"
+              width={800}
+              height={400}
+              className="w-full h-auto object-cover rounded-2xl shadow-xl"
+            />
+            <div className="absolute inset-0 bg-aroncy-gradient opacity-90 rounded-2xl"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center text-white">
+                <h3 className="text-2xl lg:text-3xl font-display font-bold mb-2">
+                  Ensemble, sécurisons l'Afrique de l'Ouest
+                </h3>
+                <p className="text-lg opacity-90">
+                  Une alliance pour un écosystème numérique résilient
+                </p>
               </div>
             </div>
           </div>
@@ -205,13 +305,16 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-lg">
-                  <Shield className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-xl font-bold">E-ARONCY</span>
+                <Image
+                  src="/assets/logos/Logo e-aroncy.png"
+                  alt="E-ARONCY Logo"
+                  width={100}
+                  height={32}
+                  className="h-8 w-auto"
+                />
               </div>
               <p className="text-slate-400">
-                Plateforme collaborative pour la cybersécurité en Afrique de l'Ouest
+                Alliance Régionale pour la Cybersécurité des ONG en Afrique de l'Ouest
               </p>
             </div>
             
