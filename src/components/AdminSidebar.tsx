@@ -308,9 +308,9 @@ export default function AdminSidebar() {
 
         {/* Settings */}
         <Link
-          href="/admin/settings"
+          href="/admin/parametres"
           className={`w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-            isActive('/admin/settings')
+            isActive('/admin/parametres')
               ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
           }`}
