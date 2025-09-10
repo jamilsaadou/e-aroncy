@@ -20,7 +20,7 @@ import {
 
 export default function ParametresPage() {
   const [activeTab, setActiveTab] = useState('general');
-  const [logoPreview, setLogoPreview] = useState('/assets/logos/Logo e-aroncy.png');
+  const [logoPreview, setLogoPreview] = useState('/assets/logos/logohdaroncy.png');
   const [faviconPreview, setFaviconPreview] = useState('/favicon.ico');
   const [sliderImages, setSliderImages] = useState([
     { id: 1, src: '/assets/images/slider1.jpg', title: 'Cybersécurité en Afrique', description: 'Protégez votre entreprise contre les cybermenaces' },

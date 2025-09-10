@@ -400,9 +400,33 @@ export default function BoiteOutilsPage() {
     return "text-orange-600 font-medium";
   };
 
-  const filteredCategories = selectedCategory === 'all' 
-    ? toolCategories 
-    : toolCategories.filter(cat => cat.id.toString() === selectedCategory);
+  // Fonction pour obtenir tous les outils filtrés
+  const getAllFilteredTools = () => {
+    let allTools: any[] = [];
+    
+    const categoriesToShow = selectedCategory === 'all' 
+      ? toolCategories 
+      : toolCategories.filter(cat => cat.id.toString() === selectedCategory);
+    
+    categoriesToShow.forEach(category => {
+      const filteredTools = category.tools.filter(tool => 
+        searchTerm === '' || 
+        tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tool.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      
+      filteredTools.forEach(tool => {
+        allTools.push({
+          ...tool,
+          category: category
+        });
+      });
+    });
+    
+    return allTools;
+  };
+
+  const filteredTools = getAllFilteredTools();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -473,119 +497,96 @@ export default function BoiteOutilsPage() {
         </div>
       </section>
 
-      {/* Categories Overview */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">
-              Catégories d'outils
-            </h2>
-            <p className="text-xl text-slate-600">
-              Outils organisés selon le framework de cybersécurité pour ONG
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {toolCategories.map((category) => (
-              <div key={category.id} className={`p-6 rounded-xl shadow-sm border hover:shadow-md transition-all cursor-pointer ${getColorClasses(category.color)}`}>
-                <div className="flex items-center mb-3">
-                  {category.icon}
-                  <h3 className="font-semibold ml-3 text-sm">{category.title}</h3>
-                </div>
-                <p className="text-xs opacity-80">{category.count} outils disponibles</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Tools by Category */}
+      {/* Tools Results */}
       <section className="py-16 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {filteredCategories.map((category) => (
-            <div key={category.id} className="mb-16">
-              <div className="flex items-center mb-8">
-                <div className={`p-3 rounded-lg text-white mr-4 ${getBgColorClasses(category.color)}`}>
-                  {category.icon}
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">{category.title}</h2>
-                  <p className="text-slate-600">{category.count} outils dans cette catégorie</p>
-                </div>
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-slate-900">
+                {searchTerm ? `Résultats pour "${searchTerm}"` : 'Tous les outils'}
+              </h2>
+              <p className="text-slate-600">
+                {filteredTools.length} outil{filteredTools.length > 1 ? 's' : ''} trouvé{filteredTools.length > 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+
+          {filteredTools.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 rounded-full mb-4">
+                <Search className="h-8 w-8 text-slate-400" />
               </div>
-
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {category.tools
-                  .filter(tool => 
-                    searchTerm === '' || 
-                    tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    tool.description.toLowerCase().includes(searchTerm.toLowerCase())
-                  )
-                  .map((tool, index) => (
-                  <div key={index} className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
-                    <div className="p-6">
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-4">
-                        <div className={`p-2 rounded-lg text-white ${getBgColorClasses(category.color)}`}>
-                          <Shield className="h-5 w-5" />
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center mb-1">
-                            <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                            <span className="text-xs text-slate-600 ml-1">{tool.rating}</span>
-                          </div>
-                          <span className={`text-sm font-medium ${getPriceColor(tool.price)}`}>
-                            {tool.price}
-                          </span>
-                        </div>
+              <h3 className="text-lg font-medium text-slate-900 mb-2">Aucun outil trouvé</h3>
+              <p className="text-slate-600">
+                Essayez de modifier vos critères de recherche ou de sélectionner une autre catégorie.
+              </p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredTools.map((tool, index) => (
+                <div key={index} className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
+                  <div className="p-6">
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`p-2 rounded-lg text-white ${getBgColorClasses(tool.category.color)}`}>
+                        <Shield className="h-5 w-5" />
                       </div>
-
-                      {/* Content */}
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-3 ${getColorClasses(category.color)}`}>
-                        {category.title}
-                      </span>
-                      
-                      <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                        {tool.name}
-                      </h3>
-                      
-                      <p className="text-slate-600 mb-4 text-sm leading-relaxed">
-                        {tool.description}
-                      </p>
-
-                      {/* Features */}
-                      <div className="mb-6">
-                        <h4 className="text-xs font-medium text-slate-900 mb-2">Fonctionnalités :</h4>
-                        <div className="grid grid-cols-2 gap-1">
-                          {tool.features.slice(0, 4).map((feature, idx) => (
-                            <div key={idx} className="text-xs text-slate-600 flex items-center">
-                              <div className="w-1 h-1 bg-blue-600 rounded-full mr-2"></div>
-                              {feature}
-                            </div>
-                          ))}
+                      <div className="text-right">
+                        <div className="flex items-center mb-1">
+                          <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                          <span className="text-xs text-slate-600 ml-1">{tool.rating}</span>
                         </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex space-x-3">
-                        <Link 
-                          href={tool.url}
-                          target="_blank"
-                          className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center text-sm"
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Visiter
-                        </Link>
-                        <button className="bg-slate-100 text-slate-700 py-2.5 px-4 rounded-lg hover:bg-slate-200 transition-all flex items-center justify-center">
-                          <Eye className="h-4 w-4" />
-                        </button>
+                        <span className={`text-sm font-medium ${getPriceColor(tool.price)}`}>
+                          {tool.price}
+                        </span>
                       </div>
                     </div>
+
+                    {/* Content */}
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-3 ${getColorClasses(tool.category.color)}`}>
+                      {tool.category.title}
+                    </span>
+                    
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                      {tool.name}
+                    </h3>
+                    
+                    <p className="text-slate-600 mb-4 text-sm leading-relaxed">
+                      {tool.description}
+                    </p>
+
+                    {/* Features */}
+                    <div className="mb-6">
+                      <h4 className="text-xs font-medium text-slate-900 mb-2">Fonctionnalités :</h4>
+                      <div className="grid grid-cols-2 gap-1">
+                        {tool.features.slice(0, 4).map((feature: string, idx: number) => (
+                          <div key={idx} className="text-xs text-slate-600 flex items-center">
+                            <div className="w-1 h-1 bg-blue-600 rounded-full mr-2"></div>
+                            {feature}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex space-x-3">
+                      <Link 
+                        href={tool.url}
+                        target="_blank"
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center text-sm"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Visiter
+                      </Link>
+                      <button className="bg-slate-100 text-slate-700 py-2.5 px-4 rounded-lg hover:bg-slate-200 transition-all flex items-center justify-center">
+                        <Eye className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       </section>
 

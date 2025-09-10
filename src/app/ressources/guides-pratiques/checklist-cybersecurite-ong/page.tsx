@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import Header from '@/components/Header';
-import { generateChecklistPDF } from '@/lib/pdfGenerator';
+import { generateChecklistPDF, generateBlankChecklistPDF } from '@/lib/pdfGenerator';
 import { 
   Shield, 
   ChevronRight, 
@@ -34,6 +34,7 @@ export default function ChecklistCybersecuriteONGPage() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [organizationName, setOrganizationName] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingBlank, setIsExportingBlank] = useState(false);
 
   const checklistItems = [
     {
@@ -315,6 +316,18 @@ export default function ChecklistCybersecuriteONGPage() {
     setOrganizationName('');
   };
 
+  const handleDownloadBlankPDF = async () => {
+    setIsExportingBlank(true);
+    try {
+      await generateBlankChecklistPDF(checklistItems);
+    } catch (error) {
+      console.error('Erreur lors de la génération du PDF vierge:', error);
+      alert('Une erreur est survenue lors de la génération du PDF. Veuillez réessayer.');
+    } finally {
+      setIsExportingBlank(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50">
       {/* Header */}
@@ -556,11 +569,28 @@ export default function ChecklistCybersecuriteONGPage() {
               <ChevronRight className="ml-2 h-5 w-5" />
             </Link>
             <button 
+              onClick={handleDownloadBlankPDF}
+              disabled={isExportingBlank}
+              className="bg-white text-slate-600 border-2 border-slate-300 px-8 py-4 rounded-lg font-semibold hover:bg-slate-50 transition-all inline-flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isExportingBlank ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-slate-600 border-t-transparent mr-2"></div>
+                  Génération...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-5 w-5" />
+                  Checklist vierge
+                </>
+              )}
+            </button>
+            <button 
               onClick={openExportModal}
               className="bg-white text-purple-600 border-2 border-purple-600 px-8 py-4 rounded-lg font-semibold hover:bg-purple-50 transition-all inline-flex items-center justify-center"
             >
               <Download className="mr-2 h-5 w-5" />
-              Télécharger la checklist
+              Exporter ma progression
             </button>
           </div>
         </div>

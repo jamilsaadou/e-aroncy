@@ -1,97 +1,93 @@
 import Link from "next/link";
-import { Shield, Download, Eye, Share2, ChevronRight, Image, TrendingUp, Users, Lock, Wifi, AlertTriangle } from "lucide-react";
+import { Shield, Download, Eye, Share2, ChevronRight, Image, TrendingUp, Users, Lock, Wifi, AlertTriangle, FileText } from "lucide-react";
+import Header from "@/components/Header";
 
 export default function Infographies() {
   const infographies = [
     {
+      id: 'interpol-report',
+      title: "Rapport d'évaluation des cybermenaces en Afrique 2022",
+      description: "Rapport officiel INTERPOL sur les principales cybermenaces identifiées dans la région africaine.",
+      category: "Rapport officiel",
+      format: "PDF",
+      size: "4.2 MB",
+      dimensions: "A4 - 32 pages",
+      color: "indigo",
+      icon: <FileText className="h-6 w-6" />,
+      tags: ["INTERPOL", "Afrique", "Cybermenaces", "Rapport"],
+      isPDF: true,
+      pdfSlug: "interpol-cyber-report-2022",
+      coverImage: "/assets/images/covers%20interpol.png"
+    },
+    {
       id: 1,
-      title: "Les 10 règles d'or de la cybersécurité",
+      title: "Les règles de la cybersécurité",
       description: "Une infographie complète présentant les bonnes pratiques essentielles pour protéger votre organisation.",
       category: "Bonnes pratiques",
-      views: 2450,
-      downloads: 890,
-      shares: 156,
       format: "PNG",
       size: "2.1 MB",
       dimensions: "1080x1920",
       color: "blue",
       icon: <Lock className="h-6 w-6" />,
-      tags: ["Sécurité", "Bonnes pratiques", "Formation"]
+      tags: ["Sécurité", "Bonnes pratiques", "Formation"],
+      coverImage: "/assets/images/R%C3%A8gles%20de%20la%20cybsers%C3%A9curit%C3%A9.png",
+      imageSlug: "regles-cybersecurite"
     },
     {
       id: 2,
       title: "Anatomie d'une attaque de phishing",
       description: "Décryptage visuel des techniques utilisées par les cybercriminels dans les attaques de phishing.",
       category: "Sensibilisation",
-      views: 1890,
-      downloads: 654,
-      shares: 203,
       format: "PNG",
       size: "1.8 MB",
       dimensions: "1080x1350",
       color: "red",
       icon: <AlertTriangle className="h-6 w-6" />,
-      tags: ["Phishing", "Email", "Sensibilisation"]
+      tags: ["Phishing", "Email", "Sensibilisation"],
+      coverImage: "/assets/images/Anatomie%20d'une%20attaque%20de%20fishing.png",
+      imageSlug: "anatomie-phishing"
     },
     {
       id: 3,
       title: "Sécurisation du télétravail",
       description: "Guide visuel pour maintenir la sécurité lors du travail à distance.",
       category: "Télétravail",
-      views: 3200,
-      downloads: 1120,
-      shares: 287,
       format: "PNG",
       size: "2.5 MB",
       dimensions: "1080x1920",
       color: "green",
       icon: <Wifi className="h-6 w-6" />,
-      tags: ["Télétravail", "VPN", "Sécurité"]
+      tags: ["Télétravail", "VPN", "Sécurité"],
+      coverImage: "/assets/images/Securisation%20T%C3%A9l%C3%A9travail.png",
+      imageSlug: "securisation-teletravail"
     },
     {
       id: 4,
-      title: "Statistiques cybersécurité 2024",
-      description: "Les chiffres clés de la cybersécurité en Afrique de l'Ouest pour l'année 2024.",
-      category: "Statistiques",
-      views: 1650,
-      downloads: 445,
-      shares: 98,
+      title: "Types de cyberattaques",
+      description: "Les différents types de cyberattaques et comment s'en protéger.",
+      category: "Sensibilisation",
       format: "PNG",
       size: "1.9 MB",
       dimensions: "1080x1350",
       color: "purple",
       icon: <TrendingUp className="h-6 w-6" />,
-      tags: ["Statistiques", "Afrique", "Tendances"]
+      tags: ["Cyberattaques", "Sensibilisation", "Prévention"],
+      coverImage: "/assets/images/Type%20de%20cybserattaques%201.png",
+      imageSlug: "types-cyberattaques"
     },
     {
       id: 5,
-      title: "Formation cybersécurité pour les équipes",
-      description: "Programme de sensibilisation visuel pour former vos collaborateurs.",
-      category: "Formation",
-      views: 2100,
-      downloads: 723,
-      shares: 134,
+      title: "Plan de cyberrésilience pour ONG",
+      description: "Guide complet pour développer un plan de cyberrésilience adapté aux organisations non gouvernementales.",
+      category: "Plan d'action",
       format: "PNG",
       size: "2.3 MB",
       dimensions: "1080x1920",
-      color: "indigo",
-      icon: <Users className="h-6 w-6" />,
-      tags: ["Formation", "Équipes", "Sensibilisation"]
-    },
-    {
-      id: 6,
-      title: "Checklist sécurité pour ONG",
-      description: "Liste de vérification visuelle spécialement conçue pour les organisations non gouvernementales.",
-      category: "Checklist",
-      views: 1780,
-      downloads: 612,
-      shares: 89,
-      format: "PNG",
-      size: "2.0 MB",
-      dimensions: "1080x1350",
       color: "orange",
       icon: <Shield className="h-6 w-6" />,
-      tags: ["ONG", "Checklist", "Audit"]
+      tags: ["ONG", "Résilience", "Plan d'action"],
+      coverImage: "/assets/images/Plan%20de%20cyberr%C3%A9silience%20pour%20ONG%20(1).png",
+      imageSlug: "plan-cyberresilience-ong"
     }
   ];
 
@@ -122,39 +118,7 @@ export default function Infographies() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <Link href="/" className="flex items-center space-x-3">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-lg">
-                  <Shield className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  E-ARONCY
-                </span>
-              </Link>
-            </div>
-            
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-slate-700 hover:text-blue-600 transition-colors">Accueil</Link>
-              <Link href="/knowledge-base" className="text-slate-700 hover:text-blue-600 transition-colors">Formation</Link>
-              <Link href="#" className="text-blue-600 font-medium">Ressources</Link>
-              <Link href="#" className="text-slate-700 hover:text-blue-600 transition-colors">Communauté</Link>
-              <Link href="#" className="text-slate-700 hover:text-blue-600 transition-colors">Contact</Link>
-            </nav>
-
-            <div className="flex items-center space-x-4">
-              <Link href="/login" className="text-slate-700 hover:text-blue-600 transition-colors">
-                Connexion
-              </Link>
-              <Link href="/register" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all">
-                S'inscrire
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Breadcrumb */}
       <div className="bg-white border-b border-slate-200">
@@ -179,10 +143,7 @@ export default function Infographies() {
             <h1 className="text-4xl lg:text-5xl font-bold mb-4">
               Infographies
             </h1>
-            <p className="text-xl text-purple-100 max-w-3xl mx-auto">
-              Des visuels percutants pour communiquer efficacement sur la cybersécurité. 
-              Parfaits pour sensibiliser vos équipes et partager les bonnes pratiques.
-            </p>
+           
           </div>
         </div>
       </section>
@@ -194,12 +155,23 @@ export default function Infographies() {
             {infographies.map((infographie) => (
               <div key={infographie.id} className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300 overflow-hidden group">
                 {/* Preview Image */}
-                <div className={`h-48 ${getBgColorClasses(infographie.color)} relative overflow-hidden`}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-white/80">
-                      {infographie.icon}
+                <div className={`h-48 ${infographie.coverImage ? 'bg-white' : getBgColorClasses(infographie.color)} relative overflow-hidden`}>
+                  {infographie.coverImage ? (
+                    <>
+                      <img 
+                        src={infographie.coverImage} 
+                        alt={infographie.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-white/80">
+                        {infographie.icon}
+                      </div>
                     </div>
-                  </div>
+                  )}
                   <div className="absolute top-4 right-4">
                     <span className="bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded text-xs font-medium">
                       {infographie.format}
@@ -242,22 +214,8 @@ export default function Infographies() {
                     ))}
                   </div>
 
-                  {/* Stats */}
-                  <div className="flex items-center justify-between text-sm text-slate-500 mb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center">
-                        <Eye className="h-4 w-4 mr-1" />
-                        {infographie.views}
-                      </div>
-                      <div className="flex items-center">
-                        <Download className="h-4 w-4 mr-1" />
-                        {infographie.downloads}
-                      </div>
-                      <div className="flex items-center">
-                        <Share2 className="h-4 w-4 mr-1" />
-                        {infographie.shares}
-                      </div>
-                    </div>
+                  {/* File Info */}
+                  <div className="flex items-center justify-end text-sm text-slate-500 mb-4">
                     <span className="text-xs">
                       {infographie.size}
                     </span>
@@ -265,10 +223,28 @@ export default function Infographies() {
 
                   {/* Actions */}
                   <div className="flex space-x-2">
-                    <button className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center text-sm">
-                      <Download className="h-4 w-4 mr-2" />
-                      Télécharger
-                    </button>
+                    {infographie.isPDF ? (
+                      <Link 
+                        href={`/ressources/infographies/pdf-viewer/${infographie.pdfSlug}`}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center text-sm"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Consulter
+                      </Link>
+                    ) : infographie.imageSlug ? (
+                      <Link 
+                        href={`/ressources/infographies/image-viewer/${infographie.imageSlug}`}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center text-sm"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Consulter
+                      </Link>
+                    ) : (
+                      <button className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center text-sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Télécharger
+                      </button>
+                    )}
                     <button className="bg-slate-100 text-slate-700 py-2 px-4 rounded-lg hover:bg-slate-200 transition-all flex items-center justify-center">
                       <Share2 className="h-4 w-4" />
                     </button>
@@ -280,38 +256,6 @@ export default function Infographies() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">
-              Impact de nos infographies
-            </h2>
-            <p className="text-xl text-slate-600">
-              Des visuels qui font la différence dans la sensibilisation
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-purple-600 mb-2">15K+</div>
-              <div className="text-slate-600">Téléchargements</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-pink-600 mb-2">25K+</div>
-              <div className="text-slate-600">Vues</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-indigo-600 mb-2">2K+</div>
-              <div className="text-slate-600">Partages</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-blue-600 mb-2">50+</div>
-              <div className="text-slate-600">Infographies</div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-16 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
@@ -322,10 +266,7 @@ export default function Infographies() {
           <p className="text-xl text-purple-100 mb-8">
             Notre équipe de designers peut créer des infographies sur mesure pour votre organisation.
           </p>
-          <Link href="/contact" className="bg-white text-purple-600 px-8 py-4 rounded-lg font-semibold hover:bg-purple-50 transition-all inline-flex items-center">
-            Demander un devis
-            <ChevronRight className="ml-2 h-5 w-5" />
-          </Link>
+         
         </div>
       </section>
 

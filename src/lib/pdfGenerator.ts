@@ -12,6 +12,205 @@ interface ChecklistItem {
   completed?: boolean;
 }
 
+export async function generateBlankChecklistPDF(checklistItems: ChecklistItem[]) {
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 20;
+  const contentWidth = pageWidth - 2 * margin;
+  
+  // Générer le code QR pour E-ARONCY
+  const qrCodeDataURL = await QRCode.toDataURL('https://e-aroncy.com', {
+    width: 100,
+    margin: 1,
+    color: {
+      dark: '#6366f1', // Couleur indigo
+      light: '#ffffff'
+    }
+  });
+
+  // Page de couverture
+  pdf.setFillColor(99, 102, 241); // Couleur indigo
+  pdf.rect(0, 0, pageWidth, 60, 'F');
+  
+  // Logo/Titre E-ARONCY
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(28);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('E-ARONCY', margin, 35);
+  
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('Plateforme collaborative pour la cybersécurité', margin, 45);
+  
+  // Titre du document
+  pdf.setTextColor(0, 0, 0);
+  pdf.setFontSize(24);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Checklist opérationnelle', margin, 85);
+  pdf.text('cybersécurité ONG', margin, 100);
+  pdf.setFontSize(16);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(75, 85, 99);
+  pdf.text('Version vierge à compléter', margin, 115);
+  
+  // Informations du rapport
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(0, 0, 0);
+  const currentDate = new Date().toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
+  pdf.text(`Date de génération: ${currentDate}`, margin, 135);
+  pdf.text('Organisation: ________________________', margin, 145);
+  pdf.text('Responsable évaluation: ________________________', margin, 155);
+  
+  // Instructions
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Instructions d\'utilisation:', margin, 175);
+  
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  const instructions = [
+    '• Cochez les cases correspondant aux mesures déjà mises en place',
+    '• Identifiez les mesures prioritaires à implémenter',
+    '• Utilisez cette checklist pour suivre vos progrès dans le temps',
+    '• Consultez le site E-ARONCY pour des guides détaillés'
+  ];
+  
+  let instructionY = 185;
+  instructions.forEach(instruction => {
+    pdf.text(instruction, margin, instructionY);
+    instructionY += 8;
+  });
+  
+  // Code QR et cachet E-ARONCY en bas de page
+  const qrSize = 25;
+  pdf.addImage(qrCodeDataURL, 'PNG', pageWidth - margin - qrSize, pageHeight - margin - qrSize - 10, qrSize, qrSize);
+  
+  // Cachet E-ARONCY
+  pdf.setFontSize(8);
+  pdf.setTextColor(99, 102, 241);
+  pdf.text('Généré par E-ARONCY', pageWidth - margin - qrSize, pageHeight - margin - 5, { align: 'right' });
+  pdf.text('© 2025 E-ARONCY. Tous droits réservés.', pageWidth - margin - qrSize, pageHeight - margin, { align: 'right' });
+  
+  // Nouvelle page pour les détails
+  pdf.addPage();
+  
+  let yPosition = margin;
+  
+  // Titre de la section détaillée
+  pdf.setTextColor(0, 0, 0);
+  pdf.setFontSize(18);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Checklist des mesures de cybersécurité', margin, yPosition);
+  yPosition += 15;
+  
+  // Grouper par catégorie
+  const categories = [...new Set(checklistItems.map(item => item.category))];
+  
+  categories.forEach(category => {
+    const categoryItems = checklistItems.filter(item => item.category === category);
+    
+    // Vérifier si on a assez de place pour la catégorie
+    if (yPosition > pageHeight - 60) {
+      pdf.addPage();
+      yPosition = margin;
+    }
+    
+    // Titre de catégorie
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(99, 102, 241); // indigo
+    pdf.text(category, margin, yPosition);
+    yPosition += 10;
+    
+    categoryItems.forEach(item => {
+      // Vérifier si on a assez de place pour l'item
+      if (yPosition > pageHeight - 40) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+      
+      // Checkbox vide
+      pdf.setDrawColor(0, 0, 0);
+      pdf.setFillColor(255, 255, 255);
+      pdf.rect(margin, yPosition - 3, 4, 4, 'FD');
+      
+      // Badge de type
+      const badgeX = margin + 8;
+      if (item.type === 'Fondamentale') {
+        pdf.setFillColor(239, 68, 68); // red-500
+      } else if (item.type === 'Exécutable') {
+        pdf.setFillColor(59, 130, 246); // blue-500
+      } else {
+        pdf.setFillColor(245, 158, 11); // amber-500
+      }
+      
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'bold');
+      const badgeWidth = pdf.getTextWidth(item.type) + 4;
+      pdf.rect(badgeX, yPosition - 4, badgeWidth, 6, 'F');
+      pdf.text(item.type, badgeX + 2, yPosition);
+      
+      // Mesure
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(item.mesure, badgeX + badgeWidth + 5, yPosition);
+      yPosition += 8;
+      
+      // Détails
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(75, 85, 99); // gray-600
+      
+      const details = [
+        `Responsable: ${item.responsable}`,
+        `Fréquence: ${item.frequence}`,
+        `Indicateur: ${item.indicateur}`
+      ];
+      
+      details.forEach(detail => {
+        pdf.text(detail, margin + 10, yPosition);
+        yPosition += 5;
+      });
+      
+      yPosition += 3; // Espacement entre les items
+    });
+    
+    yPosition += 5; // Espacement entre les catégories
+  });
+  
+  // Ajouter le cachet et code QR sur chaque page
+  const totalPages = pdf.getNumberOfPages();
+  for (let i = 2; i <= totalPages; i++) {
+    pdf.setPage(i);
+    
+    // Code QR
+    pdf.addImage(qrCodeDataURL, 'PNG', pageWidth - margin - qrSize, pageHeight - margin - qrSize - 10, qrSize, qrSize);
+    
+    // Cachet
+    pdf.setFontSize(8);
+    pdf.setTextColor(99, 102, 241);
+    pdf.text('Généré par E-ARONCY', pageWidth - margin - qrSize, pageHeight - margin - 5, { align: 'right' });
+    pdf.text('© 2025 E-ARONCY', pageWidth - margin - qrSize, pageHeight - margin, { align: 'right' });
+    
+    // Numéro de page
+    pdf.setTextColor(156, 163, 175);
+    pdf.text(`Page ${i}/${totalPages}`, pageWidth / 2, pageHeight - margin, { align: 'center' });
+  }
+  
+  // Télécharger le PDF
+  const fileName = `checklist-cybersecurite-vierge-${new Date().toISOString().split('T')[0]}.pdf`;
+  pdf.save(fileName);
+}
+
 export async function generateChecklistPDF(
   checklistItems: ChecklistItem[],
   checkedItems: {[key: number]: boolean},

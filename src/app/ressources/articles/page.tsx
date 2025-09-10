@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Header from '@/components/Header';
 import { Shield, Calendar, User, Clock, ChevronRight, FileText, TrendingUp, AlertCircle, Zap, Globe, Users } from "lucide-react";
 
 export default function Articles() {
@@ -107,39 +108,7 @@ export default function Articles() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <Link href="/" className="flex items-center space-x-3">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-lg">
-                  <Shield className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  E-ARONCY
-                </span>
-              </Link>
-            </div>
-            
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-slate-700 hover:text-blue-600 transition-colors">Accueil</Link>
-              <Link href="/knowledge-base" className="text-slate-700 hover:text-blue-600 transition-colors">Formation</Link>
-              <Link href="#" className="text-blue-600 font-medium">Ressources</Link>
-              <Link href="#" className="text-slate-700 hover:text-blue-600 transition-colors">Communauté</Link>
-              <Link href="#" className="text-slate-700 hover:text-blue-600 transition-colors">Contact</Link>
-            </nav>
-
-            <div className="flex items-center space-x-4">
-              <Link href="/login" className="text-slate-700 hover:text-blue-600 transition-colors">
-                Connexion
-              </Link>
-              <Link href="/register" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all">
-                S'inscrire
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Breadcrumb */}
       <div className="bg-white border-b border-slate-200">
@@ -147,7 +116,7 @@ export default function Articles() {
           <nav className="flex items-center space-x-2 text-sm">
             <Link href="/" className="text-slate-500 hover:text-blue-600">Accueil</Link>
             <ChevronRight className="h-4 w-4 text-slate-400" />
-            <Link href="#" className="text-slate-500 hover:text-blue-600">Ressources</Link>
+            <Link href="/ressources" className="text-slate-500 hover:text-blue-600">Ressources</Link>
             <ChevronRight className="h-4 w-4 text-slate-400" />
             <span className="text-slate-900 font-medium">Articles</span>
           </nav>

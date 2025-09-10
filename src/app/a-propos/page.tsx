@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Shield, Users, Globe, Target, Heart, Award, ChevronRight, MapPin, Calendar, TrendingUp, BookOpen, AlertTriangle, Gavel, MessageSquare, BarChart3, Eye, UserCheck } from "lucide-react";
+import { Shield, Users, Globe, Target, Heart, Award, ChevronRight, MapPin, Calendar, TrendingUp, BookOpen, AlertTriangle, Gavel, MessageSquare, BarChart3, Eye, UserCheck, Star, Quote, Zap, Lock, Network, Lightbulb } from "lucide-react";
 import Header from "@/components/Header";
 
 export default function APropos() {
@@ -99,13 +99,85 @@ export default function APropos() {
     "Bailleurs de fonds impliqués"
   ];
 
+  const testimonials = [
+    {
+      quote: "ARONCY nous a permis de renforcer considérablement notre posture de sécurité numérique. Les formations sont adaptées à nos réalités terrain.",
+      author: "Marie Kouassi",
+      role: "Directrice ONG Espoir Solidaire",
+      country: "Côte d'Ivoire"
+    },
+    {
+      quote: "Grâce aux outils de diagnostic d'ARONCY, nous avons pu identifier et corriger nos vulnérabilités critiques en quelques semaines.",
+      author: "Ibrahim Traoré",
+      role: "Responsable IT, Association Développement Durable",
+      country: "Burkina Faso"
+    },
+    {
+      quote: "La communauté ARONCY nous permet d'échanger avec d'autres ONG et de bénéficier d'un soutien mutuel face aux cybermenaces.",
+      author: "Fatima Abdou",
+      role: "Coordinatrice Sécurité, ONG Solidarité Niger",
+      country: "Niger"
+    }
+  ];
+
+  const values = [
+    {
+      title: "Collaboration",
+      description: "Nous croyons en la force du collectif et de l'entraide entre organisations.",
+      icon: <Users className="h-8 w-8" />,
+      color: "blue"
+    },
+    {
+      title: "Innovation",
+      description: "Nous développons des solutions créatives adaptées aux défis locaux.",
+      icon: <Lightbulb className="h-8 w-8" />,
+      color: "yellow"
+    },
+    {
+      title: "Sécurité",
+      description: "La protection des données et la cybersécurité sont au cœur de notre mission.",
+      icon: <Lock className="h-8 w-8" />,
+      color: "green"
+    },
+    {
+      title: "Accessibilité",
+      description: "Nos ressources sont conçues pour être accessibles à tous les niveaux.",
+      icon: <Heart className="h-8 w-8" />,
+      color: "red"
+    }
+  ];
+
+  const achievements = [
+    {
+      number: "500+",
+      label: "ONG sensibilisées",
+      icon: <Users className="h-6 w-6" />
+    },
+    {
+      number: "50+",
+      label: "Formations dispensées",
+      icon: <BookOpen className="h-6 w-6" />
+    },
+    {
+      number: "95%",
+      label: "Taux de satisfaction",
+      icon: <Star className="h-6 w-6" />
+    },
+    {
+      number: "24/7",
+      label: "Support disponible",
+      icon: <Shield className="h-6 w-6" />
+    }
+  ];
+
   const getColorClasses = (color: string) => {
     const colors = {
       blue: "from-blue-500 to-blue-600",
       green: "from-green-500 to-green-600",
       purple: "from-purple-500 to-purple-600",
       orange: "from-orange-500 to-orange-600",
-      red: "from-red-500 to-red-600"
+      red: "from-red-500 to-red-600",
+      yellow: "from-yellow-500 to-yellow-600"
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
@@ -143,7 +215,7 @@ export default function APropos() {
                 des formations, des ressources et un accompagnement adapté aux réalités locales.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/register" className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-all inline-flex items-center justify-center">
+                <Link href="/adhesion" className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-all inline-flex items-center justify-center">
                   Rejoindre l'alliance
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Link>
@@ -360,6 +432,119 @@ export default function APropos() {
         </div>
       </section>
 
+      {/* Values Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Heart className="h-4 w-4 mr-2" />
+              Nos Valeurs
+            </div>
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+              Les valeurs qui nous guident
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Des principes fondamentaux qui orientent toutes nos actions et initiatives
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {values.map((value, index) => (
+              <div key={index} className="text-center group hover:scale-105 transition-all duration-300">
+                <div className={`bg-gradient-to-r ${getColorClasses(value.color)} text-white p-4 rounded-2xl w-fit mx-auto mb-6 group-hover:shadow-lg transition-all`}>
+                  {value.icon}
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-4">
+                  {value.title}
+                </h3>
+                <p className="text-slate-600 leading-relaxed">
+                  {value.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Achievements Section */}
+      <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Award className="h-4 w-4 mr-2" />
+              Nos Réalisations
+            </div>
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+              L'impact d'ARONCY en chiffres
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Des résultats concrets qui témoignent de notre engagement
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {achievements.map((achievement, index) => (
+              <div key={index} className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center hover:shadow-xl hover:scale-105 transition-all duration-300">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-4 rounded-xl w-fit mx-auto mb-6">
+                  {achievement.icon}
+                </div>
+                <div className="text-4xl lg:text-5xl font-bold text-slate-900 mb-3">
+                  {achievement.number}
+                </div>
+                <div className="text-slate-600 font-medium">
+                  {achievement.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Quote className="h-4 w-4 mr-2" />
+              Témoignages
+            </div>
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+              Ce que disent nos membres
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Les retours d'expérience de nos partenaires ONG à travers l'Afrique de l'Ouest
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl p-8 border border-slate-200 hover:shadow-lg transition-all relative">
+                <div className="absolute top-4 right-4">
+                  <Quote className="h-8 w-8 text-blue-200" />
+                </div>
+                <div className="mb-6">
+                  <p className="text-slate-700 leading-relaxed italic text-lg">
+                    "{testimonial.quote}"
+                  </p>
+                </div>
+                <div className="border-t border-slate-200 pt-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                      {testimonial.author.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900">{testimonial.author}</div>
+                      <div className="text-sm text-slate-600">{testimonial.role}</div>
+                      <div className="text-sm text-blue-600 font-medium">{testimonial.country}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Governance Section */}
       <section className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -407,7 +592,7 @@ export default function APropos() {
             Ensemble, construisons un écosystème numérique sûr et résilient pour l'Afrique de l'Ouest
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/register" className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-all inline-flex items-center justify-center">
+            <Link href="/adhesion" className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-all inline-flex items-center justify-center">
               Rejoindre l'alliance
               <ChevronRight className="ml-2 h-5 w-5" />
             </Link>
@@ -425,7 +610,7 @@ export default function APropos() {
             <div>
               <div className="flex items-center space-x-3 mb-4">
                 <Image
-                  src="/assets/logos/Logo e-aroncy.png"
+                  src="/assets/logos/logohdaroncy.png"
                   alt="E-ARONCY Logo"
                   width={100}
                   height={32}

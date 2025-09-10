@@ -42,7 +42,7 @@ export default function Header() {
           <div className="flex items-center space-x-3">
             <Link href="/" className="flex items-center space-x-3">
               <Image
-                src="/assets/logos/Logo e-aroncy.png"
+                src="/assets/logos/logohdaroncy.png"
                 alt="E-ARONCY Logo"
                 width={120}
                 height={40}

@@ -37,7 +37,7 @@ export default function GuidesPratiquesPage() {
   const mainGuide = {
     id: 1,
     title: "Plan d'Action Cybersécurité pour les ONG",
-    description: "Plan structuré pour renforcer la résilience des ONG en Afrique de l'Ouest et du Centre, basé sur les principes du cadre NIST.",
+    description: "",
     category: "Plan complet",
     difficulty: "Pour professionnels",
     duration: "Plan complet",
@@ -46,11 +46,11 @@ export default function GuidesPratiquesPage() {
     color: "blue",
     icon: <Shield className="h-6 w-6" />,
     topics: [
-      "Principes du cadre NIST (Identification, Protection, Détection, Intervention, Récupération)",
-      "Cyber-hygiène essentielle accessible à toutes les ONG",
-      "Approche progressive et priorisée",
-      "Conformité aux normes internationales (RGPD, CIS, NIST)",
-      "Procédures claires de gestion des incidents"
+      "Cadre NIST (5 fonctions essentielles)",
+      "Cyber-hygiène accessible",
+      "Approche progressive",
+      "Conformité réglementaire",
+      "Gestion des incidents"
     ],
     content: {
       introduction: "La cybersécurité est aujourd'hui un enjeu stratégique pour toutes les organisations, y compris les ONG. Ce plan repose sur les principes du cadre NIST et la cyberhygiène essentielle.",
@@ -68,7 +68,7 @@ export default function GuidesPratiquesPage() {
   const advancedPlan = {
     id: 2,
     title: "Plan avancé de mise en œuvre de la cyber résilience pour ONG",
-    description: "Cadre pratique pour prévenir les incidents cyber, assurer la continuité des activités et protéger les données sensibles, conformément aux normes internationales.",
+    description: "Cadre pratique pour la cyber résilience des ONG, conforme aux normes CIS et NIST.",
     category: "Plan avancé",
     difficulty: "Pour professionnels",
     duration: "Guide complet",
@@ -77,11 +77,11 @@ export default function GuidesPratiquesPage() {
     color: "green",
     icon: <BookOpen className="h-6 w-6" />,
     topics: [
-      "Prévenir les incidents cyber (rançongiciels, malwares, phishing)",
-      "Assurer la continuité des activités critiques",
-      "Protéger les données personnelles et sensibles",
-      "Renforcer la culture de cybersécurité",
-      "Basé sur CIS Controls et NIST Cybersecurity Framework"
+      "Prévention des incidents cyber",
+      "Continuité des activités",
+      "Protection des données",
+      "Culture de cybersécurité",
+      "Conformité CIS et NIST"
     ],
     sections: [
       {
@@ -123,7 +123,7 @@ export default function GuidesPratiquesPage() {
   const checklistGuide = {
     id: 3,
     title: "Checklist opérationnelle cybersécurité ONG",
-    description: "Checklist pratique et opérationnelle pour évaluer et améliorer le niveau de cybersécurité des ONG. Basée sur les frameworks NIST et CIS Controls avec indicateurs de suivi.",
+    description: "Outil d'évaluation pratique du niveau de cybersécurité des ONG avec indicateurs de suivi.",
     category: "Checklist",
     difficulty: "Opérationnel",
     duration: "Outil pratique",
@@ -132,11 +132,11 @@ export default function GuidesPratiquesPage() {
     color: "purple",
     icon: <FileCheck className="h-6 w-6" />,
     topics: [
-      "22 mesures de protection organisées par catégorie",
-      "Indicateurs de suivi et fréquence d'évaluation",
-      "Responsabilités clairement définies",
-      "Classification par type (Fondamentale/Exécutable)",
-      "Conformité NIST, CIS Controls et RGPD"
+      "22 mesures organisées",
+      "Indicateurs de suivi",
+      "Responsabilités définies",
+      "Classification par type",
+      "Conformité NIST et CIS"
     ],
     checklistItems: [
       {
@@ -521,105 +521,7 @@ export default function GuidesPratiquesPage() {
                     </ul>
                   </div>
 
-                  {/* Sections for Advanced Plan */}
-                  {guide.id === 2 && 'sections' in guide && (
-                    <div className="mb-8">
-                      <h4 className="text-sm font-semibold text-slate-900 mb-3">Sections du guide :</h4>
-                      <div className="space-y-3">
-                        {guide.sections.slice(0, 4).map((section: any, index: number) => (
-                          <div key={index} className="bg-slate-50 p-3 rounded-lg">
-                            <h5 className="text-xs font-medium text-slate-900 mb-1">{section.title}</h5>
-                            <p className="text-xs text-slate-600">{section.content}</p>
-                          </div>
-                        ))}
-                        <div className="text-center">
-                          <span className="text-xs text-slate-500 italic">+ 4 sections supplémentaires dans le guide complet</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Checklist Preview for Checklist Guide */}
-                  {guide.id === 3 && 'checklistItems' in guide && (
-                    <div className="mb-8">
-                      <h4 className="text-sm font-semibold text-slate-900 mb-3">Aperçu de la checklist :</h4>
-                      <div className="space-y-2">
-                        {guide.checklistItems.slice(0, 5).map((item: any, index: number) => (
-                          <div key={index} className="bg-slate-50 p-3 rounded-lg flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  item.type === 'Fondamentale' 
-                                    ? 'bg-red-100 text-red-800' 
-                                    : 'bg-blue-100 text-blue-800'
-                                }`}>
-                                  {item.type}
-                                </span>
-                                <span className="text-xs text-slate-500">{item.category}</span>
-                              </div>
-                              <p className="text-xs font-medium text-slate-900">{item.mesure}</p>
-                              <div className="flex items-center space-x-4 mt-1">
-                                <span className="text-xs text-slate-600">
-                                  <User className="h-3 w-3 inline mr-1" />
-                                  {item.responsable}
-                                </span>
-                                <span className="text-xs text-slate-600">
-                                  <Calendar className="h-3 w-3 inline mr-1" />
-                                  {item.frequence}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="ml-4">
-                              <input type="checkbox" className="h-4 w-4 text-purple-600 rounded" />
-                            </div>
-                          </div>
-                        ))}
-                        <div className="text-center">
-                          <button 
-                            onClick={() => setExpandedChecklist(!expandedChecklist)}
-                            className="text-xs text-purple-600 hover:text-purple-800 font-medium"
-                          >
-                            {expandedChecklist ? 'Voir moins' : `+ ${guide.checklistItems.length - 5} autres mesures`}
-                          </button>
-                        </div>
-                        
-                        {expandedChecklist && (
-                          <div className="space-y-2 mt-4">
-                            {guide.checklistItems.slice(5).map((item: any, index: number) => (
-                              <div key={index + 5} className="bg-slate-50 p-3 rounded-lg flex items-center justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center space-x-2 mb-1">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                      item.type === 'Fondamentale' 
-                                        ? 'bg-red-100 text-red-800' 
-                                        : 'bg-blue-100 text-blue-800'
-                                    }`}>
-                                      {item.type}
-                                    </span>
-                                    <span className="text-xs text-slate-500">{item.category}</span>
-                                  </div>
-                                  <p className="text-xs font-medium text-slate-900">{item.mesure}</p>
-                                  <div className="flex items-center space-x-4 mt-1">
-                                    <span className="text-xs text-slate-600">
-                                      <User className="h-3 w-3 inline mr-1" />
-                                      {item.responsable}
-                                    </span>
-                                    <span className="text-xs text-slate-600">
-                                      <Calendar className="h-3 w-3 inline mr-1" />
-                                      {item.frequence}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="ml-4">
-                                  <input type="checkbox" className="h-4 w-4 text-purple-600 rounded" />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
 
                   {/* Meta */}
                   <div className="flex items-center justify-between text-sm text-slate-500 mb-6">

@@ -425,7 +425,7 @@ export default function Module1Course() {
             <div>
               <div className="flex items-center space-x-3 mb-4">
                 <Image
-                  src="/assets/logos/Logo e-aroncy.png"
+                  src="/assets/logos/logohdaroncy.png"
                   alt="E-ARONCY Logo"
                   width={100}
                   height={32}
