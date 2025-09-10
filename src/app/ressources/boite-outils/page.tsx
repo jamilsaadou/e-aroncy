@@ -1,157 +1,413 @@
-import Link from "next/link";
-import { Shield, Download, Star, ExternalLink, ChevronRight, Wrench, Lock, Scan, AlertTriangle, Database, Wifi, Smartphone } from "lucide-react";
+'use client';
 
-export default function BoiteOutils() {
-  const tools = [
+import Link from 'next/link';
+import { useState } from 'react';
+import Header from '@/components/Header';
+import { 
+  Shield, 
+  ChevronRight, 
+  Wrench, 
+  Download, 
+  ExternalLink, 
+  Star,
+  Search,
+  Filter,
+  Lock,
+  Wifi,
+  AlertTriangle,
+  Database,
+  Smartphone,
+  Scan,
+  Server,
+  Eye,
+  Bug,
+  FileText,
+  Users,
+  ShieldCheck,
+  HardDrive,
+  MonitorSpeaker
+} from 'lucide-react';
+
+export default function BoiteOutilsPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // Outils organisés par catégorie selon les informations fournies
+  const toolCategories = [
     {
       id: 1,
-      name: "Password Manager Pro",
-      description: "Gestionnaire de mots de passe professionnel avec chiffrement AES-256 et authentification multi-facteurs.",
-      category: "Authentification",
-      type: "Logiciel",
-      platform: "Windows, macOS, Linux",
-      price: "Gratuit",
-      rating: 4.8,
-      downloads: 15420,
-      features: ["Génération de mots de passe", "Synchronisation cloud", "Audit de sécurité", "Partage sécurisé"],
+      title: "Identifier son environnement",
+      icon: <Search className="h-6 w-6" />,
       color: "blue",
-      icon: <Lock className="h-6 w-6" />,
-      recommended: true
+      count: 7,
+      tools: [
+        {
+          name: "Nmap",
+          description: "Scanner réseau puissant pour la découverte d'hôtes et l'audit de sécurité",
+          price: "Gratuit",
+          rating: 4.9,
+          url: "https://nmap.org/",
+          features: ["Scan de ports", "Détection d'OS", "Script NSE", "Interface CLI"]
+        },
+        {
+          name: "Zenmap", 
+          description: "Interface graphique intuitive pour Nmap",
+          price: "Gratuit",
+          rating: 4.7,
+          url: "https://nmap.org/zenmap/",
+          features: ["GUI pour Nmap", "Visualisation réseau", "Profils prédéfinis", "Historique des scans"]
+        },
+        {
+          name: "Spiceworks Inventory",
+          description: "Gestion complète des actifs IT en ligne",
+          price: "Gratuit", 
+          rating: 4.5,
+          url: "https://www.spiceworks.com/free-tools/",
+          features: ["Inventaire automatique", "Monitoring", "Helpdesk", "Rapports détaillés"]
+        },
+        {
+          name: "Open-AudIT",
+          description: "Inventaire réseau et serveur open source",
+          price: "Freemium",
+          rating: 4.3,
+          url: "https://openaudit.org/",
+          features: ["Audit automatisé", "Découverte réseau", "Conformité", "Tableaux de bord"]
+        },
+        {
+          name: "Fing",
+          description: "Application mobile pour scan et inventaire réseau",
+          price: "Gratuit",
+          rating: 4.6,
+          url: "https://www.fing.com/products/fing-app",
+          features: ["Scan WiFi", "Test de sécurité", "Alertes d'intrusion", "Interface mobile"]
+        },
+        {
+          name: "Lansweeper",
+          description: "Solution professionnelle de gestion de parc informatique",
+          price: "Payant",
+          rating: 4.4,
+          url: "https://www.lansweeper.com/",
+          features: ["Asset management", "Compliance", "Reporting", "Intégrations"]
+        },
+        {
+          name: "Snipe-IT",
+          description: "Gestionnaire d'actifs open source basé sur le web",
+          price: "Gratuit",
+          rating: 4.2,
+          url: "https://snipeitapp.com/",
+          features: ["Suivi d'actifs", "Check-in/out", "Maintenance", "Rapports"]
+        }
+      ]
     },
     {
       id: 2,
-      name: "Network Scanner Plus",
-      description: "Outil de scan réseau pour identifier les vulnérabilités et surveiller les connexions suspectes.",
-      category: "Réseau",
-      type: "Outil",
-      platform: "Web, Windows",
-      price: "Freemium",
-      rating: 4.6,
-      downloads: 8930,
-      features: ["Scan de ports", "Détection d'intrusion", "Cartographie réseau", "Alertes temps réel"],
-      color: "green",
-      icon: <Scan className="h-6 w-6" />,
-      recommended: true
+      title: "Configuration sécurisée & Gestion des accès",
+      icon: <Lock className="h-6 w-6" />,
+      color: "green", 
+      count: 8,
+      tools: [
+        {
+          name: "OpenSCAP",
+          description: "Framework d'audit et de conformité pour systèmes Linux/Unix",
+          price: "Gratuit",
+          rating: 4.1,
+          url: "https://www.open-scap.org/",
+          features: ["Audit SCAP", "Conformité", "Remédiation", "Rapports"]
+        },
+        {
+          name: "DISA STIGs",
+          description: "Guides officiels de configuration sécurisée pour systèmes et réseaux",
+          price: "Gratuit",
+          rating: 4.8,
+          url: "https://public.cyber.mil/stigs/",
+          features: ["Guides officiels", "Standards DoD", "Multi-plateformes", "Mise à jour régulière"]
+        },
+        {
+          name: "CIS Benchmarks",
+          description: "Standards de sécurité reconnus mondialement avec outil d'analyse",
+          price: "Payant",
+          rating: 4.7,
+          url: "https://www.cisecurity.org/cis-benchmarks/",
+          features: ["Standards CIS", "Assessment", "Benchmarking", "Compliance"]
+        },
+        {
+          name: "KeePass",
+          description: "Gestionnaire de mots de passe open source sécurisé",
+          price: "Gratuit",
+          rating: 4.6,
+          url: "https://keepass.info/",
+          features: ["Chiffrement AES", "Base hors ligne", "Plugins", "Multi-plateforme"]
+        },
+        {
+          name: "Password Safe",
+          description: "Gestionnaire de mots de passe simple et sécurisé",
+          price: "Gratuit", 
+          rating: 4.3,
+          url: "https://pwsafe.org/",
+          features: ["Interface simple", "Chiffrement fort", "Import/Export", "Portable"]
+        },
+        {
+          name: "Thycotic Secret Server",
+          description: "Solution entreprise de gestion des comptes privilégiés",
+          price: "Payant",
+          rating: 4.5,
+          url: "https://www.thycotic.com/",
+          features: ["PAM", "Rotation automatique", "Audit", "Intégrations"]
+        },
+        {
+          name: "Google Authenticator",
+          description: "Application d'authentification à deux facteurs",
+          price: "Gratuit",
+          rating: 4.2,
+          url: "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2",
+          features: ["TOTP", "Multi-comptes", "Backup", "Interface simple"]
+        },
+        {
+          name: "Microsoft Authenticator", 
+          description: "Solution MFA Microsoft avec notifications push",
+          price: "Gratuit",
+          rating: 4.4,
+          url: "https://www.microsoft.com/en-us/account/authenticator",
+          features: ["Push notifications", "Intégration Azure", "Backup cloud", "Biométrie"]
+        }
+      ]
     },
     {
       id: 3,
-      name: "Phishing Detector",
-      description: "Extension de navigateur pour détecter et bloquer les tentatives de phishing en temps réel.",
-      category: "Email",
-      type: "Extension",
-      platform: "Chrome, Firefox, Safari",
-      price: "Gratuit",
-      rating: 4.7,
-      downloads: 12650,
-      features: ["Détection en temps réel", "Base de données mise à jour", "Rapports détaillés", "Formation intégrée"],
+      title: "Gestion des vulnérabilités",
+      icon: <Bug className="h-6 w-6" />,
       color: "red",
-      icon: <AlertTriangle className="h-6 w-6" />,
-      recommended: false
+      count: 6,
+      tools: [
+        {
+          name: "OpenVAS",
+          description: "Scanner de vulnérabilités complet et open source",
+          price: "Gratuit",
+          rating: 4.5,
+          url: "https://www.openvas.org/",
+          features: ["Scan complet", "Base CVE", "Rapports détaillés", "Web interface"]
+        },
+        {
+          name: "Lynis",
+          description: "Outil d'audit de sécurité pour systèmes Unix/Linux",
+          price: "Gratuit", 
+          rating: 4.3,
+          url: "https://cisofy.com/lynis/",
+          features: ["Audit système", "Compliance", "Hardening", "CLI simple"]
+        },
+        {
+          name: "NVD Database",
+          description: "Base officielle américaine des vulnérabilités",
+          price: "Gratuit",
+          rating: 4.8,
+          url: "https://nvd.nist.gov/",
+          features: ["Base CVE complète", "CVSS scores", "API gratuite", "Mises à jour quotidiennes"]
+        },
+        {
+          name: "RANCID",
+          description: "Système de gestion et suivi des configurations réseau",
+          price: "Gratuit",
+          rating: 4.1,
+          url: "https://shrubbery.net/rancid/",
+          features: ["Config backup", "Change tracking", "Multi-vendor", "Alertes"]
+        },
+        {
+          name: "ClamAV",
+          description: "Antivirus open source multiplateforme",
+          price: "Gratuit",
+          rating: 4.2,
+          url: "https://www.clamav.net/",
+          features: ["Scan en temps réel", "Base signatures", "API", "Multi-plateforme"]
+        },
+        {
+          name: "Windows Defender",
+          description: "Antivirus intégré Microsoft Windows",
+          price: "Gratuit",
+          rating: 4.0,
+          url: "https://www.microsoft.com/en-us/windows/comprehensive-security",
+          features: ["Intégré Windows", "Cloud protection", "Firewall", "Contrôle parental"]
+        }
+      ]
     },
     {
       id: 4,
-      name: "Data Backup Wizard",
-      description: "Solution de sauvegarde automatisée avec chiffrement et stockage cloud sécurisé.",
-      category: "Sauvegarde",
-      type: "Service",
-      platform: "Multi-plateforme",
-      price: "29€/mois",
-      rating: 4.9,
-      downloads: 5670,
-      features: ["Sauvegarde automatique", "Chiffrement bout en bout", "Versioning", "Restauration rapide"],
+      title: "Protection DNS & Filtrage",
+      icon: <Wifi className="h-6 w-6" />,
       color: "purple",
-      icon: <Database className="h-6 w-6" />,
-      recommended: true
+      count: 3,
+      tools: [
+        {
+          name: "MS-ISAC Malicious Domain Blocking",
+          description: "Service gratuit de blocage de domaines malveillants",
+          price: "Gratuit",
+          rating: 4.6,
+          url: "https://www.cisecurity.org/ms-isac/",
+          features: ["Blocage automatique", "Threat intelligence", "Support 24/7", "Multi-secteur"]
+        },
+        {
+          name: "Quad9",
+          description: "DNS sécurisé avec filtrage automatique des menaces",
+          price: "Gratuit",
+          rating: 4.7,
+          url: "https://www.quad9.net/",
+          features: ["Filtrage malware", "Respect vie privée", "Performance", "Global coverage"]
+        },
+        {
+          name: "OpenDNS",
+          description: "Service DNS avec filtrage de contenu et protection",
+          price: "Gratuit/Payant",
+          rating: 4.5,
+          url: "https://www.opendns.com/",
+          features: ["Content filtering", "Phishing protection", "Statistiques", "Contrôles parentaux"]
+        }
+      ]
     },
     {
       id: 5,
-      name: "WiFi Security Analyzer",
-      description: "Analyseur de sécurité Wi-Fi pour auditer et sécuriser vos réseaux sans fil.",
-      category: "Réseau",
-      type: "Outil",
-      platform: "Windows, Android",
-      price: "Gratuit",
-      rating: 4.4,
-      downloads: 7890,
-      features: ["Analyse WPA/WEP", "Détection de points d'accès", "Test de pénétration", "Rapports détaillés"],
-      color: "orange",
-      icon: <Wifi className="h-6 w-6" />,
-      recommended: false
+      title: "Formation & Sensibilisation",
+      icon: <Users className="h-6 w-6" />,
+      color: "indigo",
+      count: 3,
+      tools: [
+        {
+          name: "MS-ISAC Awareness Toolkit",
+          description: "Kit complet de ressources de sensibilisation cybersécurité",
+          price: "Gratuit",
+          rating: 4.4,
+          url: "https://www.cisecurity.org/ms-isac/",
+          features: ["Ressources prêtes", "Multi-formats", "Mis à jour", "Expertise gouvernementale"]
+        },
+        {
+          name: "FedVTE Online Courses",
+          description: "Formation cybersécurité en ligne du gouvernement américain",
+          price: "Gratuit",
+          rating: 4.3,
+          url: "https://fedvte.usalearning.gov/",
+          features: ["Cours certifiants", "Niveaux variés", "Contenu expert", "Suivi progrès"]
+        },
+        {
+          name: "StaySafeOnline.org",
+          description: "Ressources vidéo et éducatives sur la cybersécurité",
+          price: "Gratuit",
+          rating: 4.2,
+          url: "https://www.staysafeonline.org/",
+          features: ["Contenu accessible", "Vidéos pratiques", "Conseils quotidiens", "Actualités"]
+        }
+      ]
     },
     {
       id: 6,
-      name: "Mobile Device Manager",
-      description: "Gestion centralisée des appareils mobiles avec politiques de sécurité avancées.",
-      category: "Mobile",
-      type: "Plateforme",
-      platform: "iOS, Android",
-      price: "15€/appareil/mois",
-      rating: 4.5,
-      downloads: 3420,
-      features: ["Gestion à distance", "Effacement sécurisé", "Politiques de conformité", "Géolocalisation"],
-      color: "indigo",
-      icon: <Smartphone className="h-6 w-6" />,
-      recommended: false
+      title: "Gestion des incidents & Sauvegarde",
+      icon: <Database className="h-6 w-6" />,
+      color: "orange",
+      count: 8,
+      tools: [
+        {
+          name: "NIST SP 800-61",
+          description: "Guide officiel de gestion des incidents cybersécurité",
+          price: "Gratuit",
+          rating: 4.8,
+          url: "https://csrc.nist.gov/publications",
+          features: ["Standard NIST", "Méthodologie complète", "Bonnes pratiques", "Cas d'usage"]
+        },
+        {
+          name: "MS-ISAC CIRT",
+          description: "Service d'assistance gratuite pour la réponse aux incidents",
+          price: "Gratuit",
+          rating: 4.5,
+          url: "https://www.cisecurity.org/ms-isac/",
+          features: ["Support 24/7", "Expertise incident", "Threat intelligence", "Coordination"]
+        },
+        {
+          name: "Bacula",
+          description: "Solution de sauvegarde enterprise open source",
+          price: "Gratuit",
+          rating: 4.3,
+          url: "https://www.bacula.org/",
+          features: ["Sauvegarde complète", "Déduplication", "Multi-OS", "Interface web"]
+        },
+        {
+          name: "Clonezilla",
+          description: "Outil de clonage et sauvegarde système gratuit",
+          price: "Gratuit",
+          rating: 4.4,
+          url: "https://clonezilla.org/",
+          features: ["Clone système", "Multi-cast", "Compression", "Boot USB"]
+        },
+        {
+          name: "VeraCrypt",
+          description: "Solution de chiffrement avancée pour protéger vos données",
+          price: "Gratuit",
+          rating: 4.6,
+          url: "https://www.veracrypt.fr/",
+          features: ["Chiffrement fort", "Conteneurs cachés", "Multi-algorithmes", "Cross-platform"]
+        },
+        {
+          name: "Time Machine",
+          description: "Sauvegarde automatique intégrée macOS",
+          price: "Gratuit",
+          rating: 4.1,
+          url: "https://support.apple.com/en-us/HT201250",
+          features: ["Sauvegarde auto", "Versions fichiers", "Restauration facile", "Intégré macOS"]
+        },
+        {
+          name: "Windows Backup",
+          description: "Outil de sauvegarde intégré à Windows",
+          price: "Gratuit",
+          rating: 3.9,
+          url: "https://support.microsoft.com/en-us/windows/backup-and-restore-your-pc-ac359b36-7015-4694-de4a-c5eaf1e32893",
+          features: ["Sauvegarde système", "Historique fichiers", "Image système", "Intégré Windows"]
+        },
+        {
+          name: "No More Ransom",
+          description: "Outils gratuits de déchiffrement pour victimes de ransomware",
+          price: "Gratuit",
+          rating: 4.7,
+          url: "https://www.nomoreransom.org/",
+          features: ["Décrypteurs gratuits", "Multi-ransomware", "Partenariat police", "Prévention"]
+        }
+      ]
     }
   ];
 
   const getColorClasses = (color: string) => {
     const colors = {
-      blue: "bg-blue-50 border-blue-200 text-blue-800",
-      green: "bg-green-50 border-green-200 text-green-800",
-      purple: "bg-purple-50 border-purple-200 text-purple-800",
-      orange: "bg-orange-50 border-orange-200 text-orange-800",
-      indigo: "bg-indigo-50 border-indigo-200 text-indigo-800",
-      red: "bg-red-50 border-red-200 text-red-800"
+      blue: "bg-blue-100 text-blue-800",
+      green: "bg-green-100 text-green-800", 
+      red: "bg-red-100 text-red-800",
+      purple: "bg-purple-100 text-purple-800",
+      indigo: "bg-indigo-100 text-indigo-800",
+      orange: "bg-orange-100 text-orange-800"
+    };
+    return colors[color as keyof typeof colors] || colors.blue;
+  };
+
+  const getBgColorClasses = (color: string) => {
+    const colors = {
+      blue: "bg-gradient-to-r from-blue-500 to-blue-600",
+      green: "bg-gradient-to-r from-green-500 to-green-600",
+      red: "bg-gradient-to-r from-red-500 to-red-600", 
+      purple: "bg-gradient-to-r from-purple-500 to-purple-600",
+      indigo: "bg-gradient-to-r from-indigo-500 to-indigo-600",
+      orange: "bg-gradient-to-r from-orange-500 to-orange-600"
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
 
   const getPriceColor = (price: string) => {
-    if (price === "Gratuit") return "text-green-600 font-semibold";
-    if (price === "Freemium") return "text-blue-600 font-semibold";
-    return "text-slate-900 font-semibold";
+    if (price === "Gratuit") return "text-green-600 font-medium";
+    if (price === "Freemium") return "text-blue-600 font-medium";
+    return "text-orange-600 font-medium";
   };
 
-  const recommendedTools = tools.filter(tool => tool.recommended);
-  const allTools = tools;
+  const filteredCategories = selectedCategory === 'all' 
+    ? toolCategories 
+    : toolCategories.filter(cat => cat.id.toString() === selectedCategory);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <Link href="/" className="flex items-center space-x-3">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-lg">
-                  <Shield className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  E-ARONCY
-                </span>
-              </Link>
-            </div>
-            
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-slate-700 hover:text-blue-600 transition-colors">Accueil</Link>
-              <Link href="/knowledge-base" className="text-slate-700 hover:text-blue-600 transition-colors">Formation</Link>
-              <Link href="#" className="text-blue-600 font-medium">Ressources</Link>
-              <Link href="#" className="text-slate-700 hover:text-blue-600 transition-colors">Communauté</Link>
-              <Link href="#" className="text-slate-700 hover:text-blue-600 transition-colors">Contact</Link>
-            </nav>
-
-            <div className="flex items-center space-x-4">
-              <Link href="/login" className="text-slate-700 hover:text-blue-600 transition-colors">
-                Connexion
-              </Link>
-              <Link href="/register" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all">
-                S'inscrire
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Breadcrumb */}
       <div className="bg-white border-b border-slate-200">
@@ -159,7 +415,7 @@ export default function BoiteOutils() {
           <nav className="flex items-center space-x-2 text-sm">
             <Link href="/" className="text-slate-500 hover:text-blue-600">Accueil</Link>
             <ChevronRight className="h-4 w-4 text-slate-400" />
-            <Link href="#" className="text-slate-500 hover:text-blue-600">Ressources</Link>
+            <Link href="/ressources" className="text-slate-500 hover:text-blue-600">Ressources</Link>
             <ChevronRight className="h-4 w-4 text-slate-400" />
             <span className="text-slate-900 font-medium">Boîte à Outils Cybersécurité</span>
           </nav>
@@ -174,183 +430,50 @@ export default function BoiteOutils() {
               <Wrench className="h-8 w-8" />
             </div>
             <h1 className="text-4xl lg:text-5xl font-bold mb-4">
-              Boîte à Outils Cybersécurité
+              Outils de Cybersécurité pour ONG
             </h1>
             <p className="text-xl text-indigo-100 max-w-3xl mx-auto">
-              Une sélection d'outils testés et approuvés par nos experts pour renforcer 
-              la sécurité de votre organisation. Gratuits et payants.
+              Une collection complète d'outils testés et approuvés pour renforcer 
+              la sécurité de votre organisation. Solutions gratuites et professionnelles.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Recommended Tools */}
-      <section className="py-20">
+      {/* Search and Filters */}
+      <section className="py-8 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">Outils recommandés</h2>
-            <p className="text-xl text-slate-600">Nos coups de cœur pour débuter en cybersécurité</p>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-8 mb-16">
-            {recommendedTools.map((tool) => (
-              <div key={tool.id} className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
-                <div className="p-8">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-lg ${getColorClasses(tool.color)}`}>
-                      {tool.icon}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-medium">
-                        Recommandé
-                      </span>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-sm text-slate-600 ml-1">{tool.rating}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-2xl font-bold text-slate-900">
-                      {tool.name}
-                    </h3>
-                    <span className={`text-lg ${getPriceColor(tool.price)}`}>
-                      {tool.price}
-                    </span>
-                  </div>
-                  
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-3 ${getColorClasses(tool.color)}`}>
-                    {tool.category}
-                  </span>
-                  
-                  <p className="text-slate-600 mb-6 leading-relaxed">
-                    {tool.description}
-                  </p>
-
-                  {/* Features */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-medium text-slate-900 mb-2">Fonctionnalités principales :</h4>
-                    <ul className="grid grid-cols-2 gap-1">
-                      {tool.features.map((feature, index) => (
-                        <li key={index} className="text-sm text-slate-600 flex items-center">
-                          <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mr-2"></div>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Meta */}
-                  <div className="flex items-center justify-between text-sm text-slate-500 mb-6">
-                    <div className="flex items-center space-x-4">
-                      <span>{tool.platform}</span>
-                      <div className="flex items-center">
-                        <Download className="h-4 w-4 mr-1" />
-                        {tool.downloads}
-                      </div>
-                    </div>
-                    <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs">
-                      {tool.type}
-                    </span>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex space-x-3">
-                    <button className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center">
-                      <Download className="h-4 w-4 mr-2" />
-                      Télécharger
-                    </button>
-                    <button className="bg-slate-100 text-slate-700 py-3 px-4 rounded-lg hover:bg-slate-200 transition-all flex items-center justify-center">
-                      <ExternalLink className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Rechercher un outil..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Filter className="h-5 w-5 text-slate-500" />
+                <select 
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">Toutes les catégories</option>
+                  {toolCategories.map(cat => (
+                    <option key={cat.id} value={cat.id.toString()}>{cat.title}</option>
+                  ))}
+                </select>
               </div>
-            ))}
-          </div>
-
-          {/* All Tools */}
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-slate-900 mb-8">Tous les outils</h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {allTools.map((tool) => (
-              <div key={tool.id} className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
-                <div className="p-6">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`p-2 rounded-lg ${getColorClasses(tool.color)}`}>
-                      {tool.icon}
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center mb-1">
-                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                        <span className="text-xs text-slate-600 ml-1">{tool.rating}</span>
-                      </div>
-                      <span className={`text-sm ${getPriceColor(tool.price)}`}>
-                        {tool.price}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${getColorClasses(tool.color)}`}>
-                    {tool.category}
-                  </span>
-                  
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                    {tool.name}
-                  </h3>
-                  <p className="text-slate-600 mb-4 text-sm leading-relaxed">
-                    {tool.description}
-                  </p>
-
-                  {/* Features (limited) */}
-                  <div className="mb-4">
-                    <ul className="space-y-1">
-                      {tool.features.slice(0, 2).map((feature, index) => (
-                        <li key={index} className="text-xs text-slate-600 flex items-center">
-                          <div className="w-1 h-1 bg-blue-600 rounded-full mr-2"></div>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Meta */}
-                  <div className="text-xs text-slate-500 mb-4">
-                    <div className="flex items-center justify-between">
-                      <span>{tool.type}</span>
-                      <div className="flex items-center">
-                        <Download className="h-3 w-3 mr-1" />
-                        {tool.downloads}
-                      </div>
-                    </div>
-                    <div className="mt-1">{tool.platform}</div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex space-x-2">
-                    <button className="flex-1 bg-slate-100 text-slate-700 py-2 px-3 rounded-lg font-medium hover:bg-slate-200 transition-all flex items-center justify-center text-sm">
-                      <Download className="h-3 w-3 mr-1" />
-                      Obtenir
-                    </button>
-                    <button className="bg-slate-100 text-slate-700 py-2 px-3 rounded-lg hover:bg-slate-200 transition-all flex items-center justify-center">
-                      <ExternalLink className="h-3 w-3" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Categories */}
+      {/* Categories Overview */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -358,28 +481,111 @@ export default function BoiteOutils() {
               Catégories d'outils
             </h2>
             <p className="text-xl text-slate-600">
-              Trouvez les outils adaptés à vos besoins spécifiques
+              Outils organisés selon le framework de cybersécurité pour ONG
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { name: "Authentification", count: 8, icon: <Lock className="h-6 w-6" />, color: "blue" },
-              { name: "Réseau", count: 12, icon: <Wifi className="h-6 w-6" />, color: "green" },
-              { name: "Email", count: 6, icon: <AlertTriangle className="h-6 w-6" />, color: "red" },
-              { name: "Sauvegarde", count: 5, icon: <Database className="h-6 w-6" />, color: "purple" },
-              { name: "Mobile", count: 7, icon: <Smartphone className="h-6 w-6" />, color: "indigo" },
-              { name: "Audit", count: 9, icon: <Scan className="h-6 w-6" />, color: "orange" }
-            ].map((category, index) => (
-              <div key={index} className={`p-6 rounded-xl shadow-sm border hover:shadow-md transition-all cursor-pointer ${getColorClasses(category.color)}`}>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {toolCategories.map((category) => (
+              <div key={category.id} className={`p-6 rounded-xl shadow-sm border hover:shadow-md transition-all cursor-pointer ${getColorClasses(category.color)}`}>
                 <div className="flex items-center mb-3">
                   {category.icon}
-                  <h3 className="font-semibold ml-3">{category.name}</h3>
+                  <h3 className="font-semibold ml-3 text-sm">{category.title}</h3>
                 </div>
-                <p className="text-sm opacity-80">{category.count} outils disponibles</p>
+                <p className="text-xs opacity-80">{category.count} outils disponibles</p>
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Tools by Category */}
+      <section className="py-16 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {filteredCategories.map((category) => (
+            <div key={category.id} className="mb-16">
+              <div className="flex items-center mb-8">
+                <div className={`p-3 rounded-lg text-white mr-4 ${getBgColorClasses(category.color)}`}>
+                  {category.icon}
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">{category.title}</h2>
+                  <p className="text-slate-600">{category.count} outils dans cette catégorie</p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {category.tools
+                  .filter(tool => 
+                    searchTerm === '' || 
+                    tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    tool.description.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .map((tool, index) => (
+                  <div key={index} className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
+                    <div className="p-6">
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className={`p-2 rounded-lg text-white ${getBgColorClasses(category.color)}`}>
+                          <Shield className="h-5 w-5" />
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center mb-1">
+                            <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                            <span className="text-xs text-slate-600 ml-1">{tool.rating}</span>
+                          </div>
+                          <span className={`text-sm font-medium ${getPriceColor(tool.price)}`}>
+                            {tool.price}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-3 ${getColorClasses(category.color)}`}>
+                        {category.title}
+                      </span>
+                      
+                      <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                        {tool.name}
+                      </h3>
+                      
+                      <p className="text-slate-600 mb-4 text-sm leading-relaxed">
+                        {tool.description}
+                      </p>
+
+                      {/* Features */}
+                      <div className="mb-6">
+                        <h4 className="text-xs font-medium text-slate-900 mb-2">Fonctionnalités :</h4>
+                        <div className="grid grid-cols-2 gap-1">
+                          {tool.features.slice(0, 4).map((feature, idx) => (
+                            <div key={idx} className="text-xs text-slate-600 flex items-center">
+                              <div className="w-1 h-1 bg-blue-600 rounded-full mr-2"></div>
+                              {feature}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex space-x-3">
+                        <Link 
+                          href={tool.url}
+                          target="_blank"
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center text-sm"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Visiter
+                        </Link>
+                        <button className="bg-slate-100 text-slate-700 py-2.5 px-4 rounded-lg hover:bg-slate-200 transition-all flex items-center justify-center">
+                          <Eye className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 

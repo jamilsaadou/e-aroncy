@@ -1,142 +1,186 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import AdminSidebar from "@/components/AdminSidebar";
+import { useRequireRole } from "@/components/SessionProvider";
 import { 
   FileText, 
   Plus,
   Search,
-  Filter,
   Eye,
   Edit,
   Trash2,
   Calendar,
   User,
   Tag,
-  ChevronDown,
-  MoreHorizontal
+  Globe,
+  Clock,
+  Star,
+  MessageCircle,
+  TrendingUp,
+  Filter,
+  Loader,
+  AlertCircle,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 
-interface Article {
+interface ArticleData {
   id: string;
   title: string;
-  category: 'actualites' | 'guides-pratiques' | 'boite-outils';
-  author: string;
-  publishDate: string;
-  status: 'published' | 'draft' | 'review';
-  views: number;
-  comments: number;
-  featured: boolean;
+  subtitle?: string;
   excerpt: string;
+  category: string;
   tags: string[];
+  author: string;
+  authorId: string;
+  publishDate: string;
+  publishTime: string;
+  status: string;
+  featured: boolean;
+  allowComments: boolean;
+  featuredImage?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  views: number;
+  likes: number;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+}
+
+interface ArticlesResponse {
+  success: boolean;
+  articles: ArticleData[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
 }
 
 export default function ArticlesPage() {
+  // Protection de la route
+  const { hasRole } = useRequireRole(['ADMIN'], '/dashboard');
+  
+  const [articles, setArticles] = useState<ArticleData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 0
+  });
 
-  // Données d'exemple
-  const articles: Article[] = [
-    {
-      id: '1',
-      title: 'Les nouvelles menaces de cybersécurité en 2024',
-      category: 'actualites',
-      author: 'Marie Dubois',
-      publishDate: '2024-01-15',
-      status: 'published',
-      views: 1250,
-      comments: 8,
-      featured: true,
-      excerpt: 'Découvrez les principales menaces cybersécuritaires qui émergent cette année et comment s\'en protéger.',
-      tags: ['cybersécurité', 'menaces', '2024']
-    },
-    {
-      id: '2',
-      title: 'Guide complet : Sécuriser son réseau Wi-Fi',
-      category: 'guides-pratiques',
-      author: 'Jean Martin',
-      publishDate: '2024-01-12',
-      status: 'published',
-      views: 890,
-      comments: 12,
-      featured: false,
-      excerpt: 'Un guide étape par étape pour sécuriser efficacement votre réseau Wi-Fi domestique ou professionnel.',
-      tags: ['wifi', 'réseau', 'sécurité']
-    },
-    {
-      id: '3',
-      title: 'Outils gratuits pour tester la sécurité de votre site web',
-      category: 'boite-outils',
-      author: 'Sophie Laurent',
-      publishDate: '2024-01-10',
-      status: 'published',
-      views: 654,
-      comments: 5,
-      featured: false,
-      excerpt: 'Une sélection d\'outils gratuits et efficaces pour évaluer la sécurité de votre site web.',
-      tags: ['outils', 'test', 'sécurité web']
-    },
-    {
-      id: '4',
-      title: 'Comment détecter et éviter les attaques de phishing',
-      category: 'guides-pratiques',
-      author: 'Pierre Durand',
-      publishDate: '2024-01-08',
-      status: 'review',
-      views: 0,
-      comments: 0,
-      featured: false,
-      excerpt: 'Apprenez à identifier les signes d\'une tentative de phishing et les bonnes pratiques pour vous protéger.',
-      tags: ['phishing', 'email', 'sécurité']
-    },
-    {
-      id: '5',
-      title: 'Nouvelle réglementation RGPD : ce qui change en 2024',
-      category: 'actualites',
-      author: 'Anne Moreau',
-      publishDate: '2024-01-05',
-      status: 'draft',
-      views: 0,
-      comments: 0,
-      featured: false,
-      excerpt: 'Les dernières mises à jour du RGPD et leur impact sur les entreprises.',
-      tags: ['RGPD', 'réglementation', 'conformité']
-    }
+  const categories = [
+    { value: 'actualites', label: 'Actualités' },
+    { value: 'guides-pratiques', label: 'Guides Pratiques' },
+    { value: 'boite-outils', label: 'Boîte à Outils' },
+    { value: 'analyse', label: 'Analyse' },
+    { value: 'formation', label: 'Formation' }
   ];
 
-  const getCategoryLabel = (category: string) => {
-    switch (category) {
-      case 'actualites': return 'Actualités';
-      case 'guides-pratiques': return 'Guides Pratiques';
-      case 'boite-outils': return 'Boîte à Outils';
-      default: return category;
+  // Charger les articles
+  const loadArticles = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      const params = new URLSearchParams({
+        page: pagination.page.toString(),
+        limit: pagination.limit.toString()
+      });
+
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedCategory !== 'all') params.append('category', selectedCategory);
+      if (selectedStatus !== 'all') params.append('status', selectedStatus);
+
+      const response = await fetch(`/api/articles?${params}`, {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement des articles');
+      }
+
+      const data: ArticlesResponse = await response.json();
+      
+      setArticles(data.articles);
+      setPagination(data.pagination);
+
+    } catch (error: any) {
+      console.error('Erreur chargement articles:', error);
+      setError(error.message || 'Erreur lors du chargement');
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Charger les articles au montage et lors des changements de filtres
+  useEffect(() => {
+    if (hasRole) {
+      loadArticles();
+    }
+  }, [hasRole, pagination.page]);
+
+  // Debounce pour la recherche
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (pagination.page !== 1) {
+        setPagination(prev => ({ ...prev, page: 1 }));
+      } else {
+        loadArticles();
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, selectedCategory, selectedStatus]);
+
+  if (!hasRole) {
+    return null; // Redirection gérée par useRequireRole
+  }
+
   const getStatusBadge = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'published':
-        return <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Publié</span>;
+        return <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+          <CheckCircle className="h-3 w-3 mr-1" />Publié
+        </span>;
       case 'draft':
-        return <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Brouillon</span>;
-      case 'review':
-        return <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">En révision</span>;
+        return <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+          <Edit className="h-3 w-3 mr-1" />Brouillon
+        </span>;
+      case 'scheduled':
+        return <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+          <Clock className="h-3 w-3 mr-1" />Planifié
+        </span>;
+      case 'archived':
+        return <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+          <XCircle className="h-3 w-3 mr-1" />Archivé
+        </span>;
       default:
         return <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{status}</span>;
     }
   };
 
-  const filteredArticles = articles.filter(article => {
-    const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         article.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         article.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
-    const matchesStatus = selectedStatus === 'all' || article.status === selectedStatus;
-    
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+  const getCategoryBadge = (category: string) => {
+    const categoryInfo = categories.find(cat => cat.value === category);
+    return categoryInfo ? categoryInfo.label : category;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 lg:flex">
@@ -152,9 +196,10 @@ export default function ArticlesPage() {
               <div className="flex justify-between items-center">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Gestion des Articles</h1>
-                  <p className="text-gray-600 mt-1">Gérer tous les articles de la plateforme</p>
+                  <p className="text-gray-600 mt-1">Créer et gérer le contenu de la plateforme</p>
                 </div>
                 
+                {/* Add Article Button */}
                 <Link
                   href="/admin/articles/new"
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
@@ -192,9 +237,9 @@ export default function ArticlesPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="all">Toutes les catégories</option>
-                  <option value="actualites">Actualités</option>
-                  <option value="guides-pratiques">Guides Pratiques</option>
-                  <option value="boite-outils">Boîte à Outils</option>
+                  {categories.map(cat => (
+                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                  ))}
                 </select>
               </div>
               
@@ -205,9 +250,10 @@ export default function ArticlesPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="all">Tous les statuts</option>
-                  <option value="published">Publié</option>
                   <option value="draft">Brouillon</option>
-                  <option value="review">En révision</option>
+                  <option value="scheduled">Planifié</option>
+                  <option value="published">Publié</option>
+                  <option value="archived">Archivé</option>
                 </select>
               </div>
             </div>
@@ -219,7 +265,7 @@ export default function ArticlesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Articles</p>
-                  <p className="text-2xl font-bold text-gray-900">{articles.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{pagination.total}</p>
                 </div>
                 <FileText className="h-8 w-8 text-blue-600" />
               </div>
@@ -229,35 +275,35 @@ export default function ArticlesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Publiés</p>
-                  <p className="text-2xl font-bold text-green-600">{articles.filter(a => a.status === 'published').length}</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {articles.filter(a => a.status === 'PUBLISHED').length}
+                  </p>
                 </div>
-                <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <div className="h-4 w-4 bg-green-600 rounded-full"></div>
-                </div>
+                <Globe className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">En révision</p>
-                  <p className="text-2xl font-bold text-yellow-600">{articles.filter(a => a.status === 'review').length}</p>
-                </div>
-                <div className="h-8 w-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <div className="h-4 w-4 bg-yellow-600 rounded-full"></div>
-                </div>
-              </div>
-            </div>
-            
+
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Brouillons</p>
-                  <p className="text-2xl font-bold text-gray-600">{articles.filter(a => a.status === 'draft').length}</p>
+                  <p className="text-2xl font-bold text-gray-600">
+                    {articles.filter(a => a.status === 'DRAFT').length}
+                  </p>
                 </div>
-                <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
-                  <div className="h-4 w-4 bg-gray-600 rounded-full"></div>
+                <Edit className="h-8 w-8 text-gray-600" />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">À la une</p>
+                  <p className="text-2xl font-bold text-yellow-600">
+                    {articles.filter(a => a.featured).length}
+                  </p>
                 </div>
+                <Star className="h-8 w-8 text-yellow-600" />
               </div>
             </div>
           </div>
@@ -266,199 +312,27 @@ export default function ArticlesPage() {
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">
-                Articles ({filteredArticles.length})
+                Articles ({pagination.total})
               </h3>
             </div>
             
-            {/* Desktop Table View */}
-            <div className="hidden lg:block">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">Article</th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catégorie</th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Auteur</th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vues</th>
-                      <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredArticles.map((article) => (
-                      <tr key={article.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-4">
-                          <div className="flex items-start space-x-3">
-                            {article.featured && (
-                              <div className="flex-shrink-0">
-                                <div className="h-2 w-2 bg-yellow-400 rounded-full mt-2"></div>
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 line-clamp-2">
-                                {article.title}
-                              </p>
-                              <p className="text-sm text-gray-500 line-clamp-1 mt-1">
-                                {article.excerpt}
-                              </p>
-                              {article.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {article.tags.slice(0, 2).map((tag, index) => (
-                                    <span
-                                      key={index}
-                                      className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800"
-                                    >
-                                      {tag}
-                                    </span>
-                                  ))}
-                                  {article.tags.length > 2 && (
-                                    <span className="text-xs text-gray-500">+{article.tags.length - 2}</span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <span className="text-sm text-gray-900">
-                            {getCategoryLabel(article.category)}
-                          </span>
-                        </td>
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                              <User className="h-4 w-4 text-gray-600" />
-                            </div>
-                            <div className="ml-2 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">{article.author}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <div className="flex items-center text-sm text-gray-500">
-                            <Calendar className="h-4 w-4 mr-1 flex-shrink-0" />
-                            <span className="truncate">
-                              {new Date(article.publishDate).toLocaleDateString('fr-FR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: '2-digit'
-                              })}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          {getStatusBadge(article.status)}
-                        </td>
-                        <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="space-y-1">
-                            <div>{article.views} vues</div>
-                            <div>{article.comments} comm.</div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex items-center justify-end space-x-1">
-                            <button className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded">
-                              <Eye className="h-4 w-4" />
-                            </button>
-                            <button className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded">
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {loading ? (
+              <div className="p-8 text-center">
+                <Loader className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" />
+                <p className="text-gray-500">Chargement des articles...</p>
               </div>
-            </div>
-
-            {/* Mobile Card View */}
-            <div className="lg:hidden">
-              <div className="divide-y divide-gray-200">
-                {filteredArticles.map((article) => (
-                  <div key={article.id} className="p-4 hover:bg-gray-50">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-2">
-                          {article.featured && (
-                            <div className="h-2 w-2 bg-yellow-400 rounded-full"></div>
-                          )}
-                          <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
-                            {article.title}
-                          </h4>
-                        </div>
-                        
-                        <p className="text-sm text-gray-500 line-clamp-2 mb-3">
-                          {article.excerpt}
-                        </p>
-                        
-                        <div className="flex flex-wrap items-center gap-2 mb-3">
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                            {getCategoryLabel(article.category)}
-                          </span>
-                          {getStatusBadge(article.status)}
-                        </div>
-                        
-                        <div className="flex items-center justify-between text-sm text-gray-500">
-                          <div className="flex items-center space-x-4">
-                            <span className="flex items-center">
-                              <User className="h-4 w-4 mr-1" />
-                              {article.author}
-                            </span>
-                            <span className="flex items-center">
-                              <Calendar className="h-4 w-4 mr-1" />
-                              {new Date(article.publishDate).toLocaleDateString('fr-FR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: '2-digit'
-                              })}
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <div>{article.views} vues</div>
-                            <div>{article.comments} comm.</div>
-                          </div>
-                        </div>
-                        
-                        {article.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-3">
-                            {article.tags.slice(0, 3).map((tag, index) => (
-                              <span
-                                key={index}
-                                className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                            {article.tags.length > 3 && (
-                              <span className="text-xs text-gray-500">+{article.tags.length - 3}</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center space-x-1 ml-4">
-                        <button className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded">
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded">
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            ) : error ? (
+              <div className="p-8 text-center">
+                <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+                <p className="text-red-600 mb-4">{error}</p>
+                <button 
+                  onClick={loadArticles}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Réessayer
+                </button>
               </div>
-            </div>
-            
-            {filteredArticles.length === 0 && (
+            ) : articles.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun article trouvé</h3>
@@ -475,6 +349,244 @@ export default function ArticlesPage() {
                   Créer un article
                 </Link>
               </div>
+            ) : (
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden lg:block">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Article</th>
+                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catégorie</th>
+                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Auteur</th>
+                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stats</th>
+                          <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {articles.map((article) => (
+                          <tr key={article.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-4">
+                              <div className="flex items-start space-x-3">
+                                {article.featuredImage ? (
+                                  <img 
+                                    src={article.featuredImage} 
+                                    alt={article.title}
+                                    className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
+                                  />
+                                ) : (
+                                  <div className="h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                    <FileText className="h-6 w-6 text-gray-400" />
+                                  </div>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center space-x-2">
+                                    <h4 className="text-sm font-medium text-gray-900 truncate">
+                                      {article.title}
+                                    </h4>
+                                    {article.featured && (
+                                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-gray-500 truncate mt-1">
+                                    {article.excerpt}
+                                  </p>
+                                  <div className="flex items-center space-x-2 mt-2">
+                                    {article.tags.slice(0, 3).map(tag => (
+                                      <span key={tag} className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-800">
+                                        {tag}
+                                      </span>
+                                    ))}
+                                    {article.tags.length > 3 && (
+                                      <span className="text-xs text-gray-500">+{article.tags.length - 3}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-3 py-4 whitespace-nowrap">
+                              <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
+                                {getCategoryBadge(article.category)}
+                              </span>
+                            </td>
+                            <td className="px-3 py-4 whitespace-nowrap">
+                              {getStatusBadge(article.status)}
+                            </td>
+                            <td className="px-3 py-4 whitespace-nowrap">
+                              <div className="flex items-center space-x-2">
+                                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                  <User className="h-4 w-4 text-blue-600" />
+                                </div>
+                                <span className="text-sm text-gray-900">{article.author}</span>
+                              </div>
+                            </td>
+                            <td className="px-3 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">{formatDate(article.createdAt)}</div>
+                              {article.publishedAt && (
+                                <div className="text-xs text-gray-500">Publié: {formatDate(article.publishedAt)}</div>
+                              )}
+                            </td>
+                            <td className="px-3 py-4 whitespace-nowrap">
+                              <div className="flex items-center space-x-3 text-sm text-gray-500">
+                                <div className="flex items-center space-x-1">
+                                  <Eye className="h-4 w-4" />
+                                  <span>{article.views}</span>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                  <TrendingUp className="h-4 w-4" />
+                                  <span>{article.likes}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              <div className="flex items-center justify-end space-x-1">
+                                <Link
+                                  href={`/admin/articles/${article.id}`}
+                                  className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Link>
+                                <Link
+                                  href={`/admin/articles/${article.id}/edit`}
+                                  className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Link>
+                                <button className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded">
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="lg:hidden">
+                  <div className="divide-y divide-gray-200">
+                    {articles.map((article) => (
+                      <div key={article.id} className="p-4 hover:bg-gray-50">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start space-x-3 mb-3">
+                              {article.featuredImage ? (
+                                <img 
+                                  src={article.featuredImage} 
+                                  alt={article.title}
+                                  className="h-16 w-16 rounded-lg object-cover flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="h-16 w-16 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                  <FileText className="h-8 w-8 text-gray-400" />
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center space-x-2">
+                                  <h4 className="text-sm font-medium text-gray-900 truncate">
+                                    {article.title}
+                                  </h4>
+                                  {article.featured && (
+                                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-500 truncate mt-1">
+                                  {article.excerpt}
+                                </p>
+                                <div className="flex items-center space-x-2 mt-2">
+                                  {getStatusBadge(article.status)}
+                                  <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
+                                    {getCategoryBadge(article.category)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex flex-wrap items-center gap-2 mb-3">
+                              {article.tags.slice(0, 3).map(tag => (
+                                <span key={tag} className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-800">
+                                  {tag}
+                                </span>
+                              ))}
+                              {article.tags.length > 3 && (
+                                <span className="text-xs text-gray-500">+{article.tags.length - 3}</span>
+                              )}
+                            </div>
+                            
+                            <div className="flex items-center justify-between text-sm text-gray-500">
+                              <div className="flex items-center space-x-1">
+                                <User className="h-4 w-4" />
+                                <span>{article.author}</span>
+                              </div>
+                              <div className="flex items-center space-x-3">
+                                <div className="flex items-center space-x-1">
+                                  <Eye className="h-4 w-4" />
+                                  <span>{article.views}</span>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                  <TrendingUp className="h-4 w-4" />
+                                  <span>{article.likes}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-1 ml-4">
+                            <Link
+                              href={`/admin/articles/${article.id}`}
+                              className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                            <Link
+                              href={`/admin/articles/${article.id}/edit`}
+                              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Link>
+                            <button className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pagination */}
+                {pagination.pages > 1 && (
+                  <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                    <div className="text-sm text-gray-700">
+                      Affichage de {((pagination.page - 1) * pagination.limit) + 1} à {Math.min(pagination.page * pagination.limit, pagination.total)} sur {pagination.total} articles
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                        disabled={pagination.page <= 1}
+                        className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Précédent
+                      </button>
+                      <span className="text-sm text-gray-700">
+                        Page {pagination.page} sur {pagination.pages}
+                      </span>
+                      <button
+                        onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                        disabled={pagination.page >= pagination.pages}
+                        className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Suivant
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

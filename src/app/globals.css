@@ -43,7 +43,7 @@
 
   /* Brand Color Classes */
   .text-aroncy-orange {
-    color: var(--aroncy-green);
+    color: var(--aroncy-orange);
   }
 
   .text-aroncy-blue {
@@ -55,7 +55,7 @@
   }
 
   .bg-aroncy-orange {
-    background-color: var(--aroncy-green);
+    background-color: var(--aroncy-orange);
   }
 
   .bg-aroncy-blue {

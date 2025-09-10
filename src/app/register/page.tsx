@@ -1,7 +1,43 @@
+"use client";
+
+import React, { useEffect } from 'react';
 import Link from "next/link";
-import { Shield, Mail, Lock, User, Building, MapPin, Phone } from "lucide-react";
+import { useRouter } from 'next/navigation';
+import { Shield, Mail, Lock, User, Building, MapPin, Phone, Loader } from "lucide-react";
+import { useSession } from '../../components/SessionProvider';
 
 export default function Register() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading: sessionLoading, user } = useSession();
+
+  // Rediriger si l'utilisateur est déjà connecté
+  useEffect(() => {
+    if (!sessionLoading && isAuthenticated && user) {
+      // Rediriger vers la page appropriée selon le rôle
+      if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+        router.replace('/admin');
+      } else {
+        router.replace('/dashboard');
+      }
+    }
+  }, [isAuthenticated, sessionLoading, user, router]);
+
+  // Afficher un loader pendant la vérification de session
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" />
+          <p className="text-slate-600">Vérification de votre session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Ne pas afficher la page d'inscription si l'utilisateur est connecté
+  if (isAuthenticated) {
+    return null;
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">

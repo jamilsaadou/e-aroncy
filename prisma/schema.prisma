@@ -1,0 +1,527 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===============================
+// MODÈLES UTILISATEUR ET AUTH
+// ===============================
+
+model User {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  password              String
+  firstName             String
+  lastName              String
+  organization          String?
+  role                  Role      @default(STUDENT)
+  
+  // Account security
+  failedLoginAttempts   Int       @default(0)
+  lockUntil             DateTime?
+  status                UserStatus @default(ACTIVE)
+  
+  // 2FA
+  twoFactorSecret       String?
+  twoFactorTempSecret   String?
+  twoFactorEnabled      Boolean   @default(false)
+  
+  // Tracking
+  lastLogin             DateTime?
+  lastActivity          DateTime  @default(now())
+  emailVerified         Boolean   @default(false)
+  isActive              Boolean   @default(true)
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  // Relations
+  formations            Formation[]      @relation("InstructorFormations")
+  enrollments           Enrollment[]
+  quizSessions          QuizSession[]
+  certificates          Certificate[]
+  progress              UserProgress[]
+  quizAnswers           QuizAnswer[]
+  activities            UserActivity[]
+  sessions              UserSession[]
+  articles              Article[]
+  
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING
+  SUSPENDED
+  INACTIVE
+}
+
+// ===============================
+// MODÈLES FORMATION ET CONTENU
+// ===============================
+
+model Formation {
+  id                    String    @id @default(cuid())
+  title                 String
+  description           String
+  shortDescription      String
+  category              Category
+  level                 Level
+  instructor            String
+  instructorId          String
+  duration              String
+  price                 Float?    @default(0)
+  maxEnrollments        Int?
+  language              String    @default("fr")
+  tags                  String[]
+  prerequisites         String[]
+  objectives            String[]
+  status                FormationStatus @default(DRAFT)
+  featured              Boolean   @default(false)
+  certificateEnabled    Boolean   @default(true)
+  allowDiscussions      Boolean   @default(true)
+  featuredImage         String?
+  metaTitle             String?
+  metaDescription       String?
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  // Relations
+  instructorUser        User      @relation("InstructorFormations", fields: [instructorId], references: [id])
+  modules               Module[]
+  enrollments           Enrollment[]
+  certificates          Certificate[]
+  progress              UserProgress[]
+  
+  @@map("formations")
+}
+
+enum Category {
+  CYBERSECURITE
+  SENSIBILISATION
+  TECHNIQUE
+  MANAGEMENT
+}
+
+enum Level {
+  DEBUTANT
+  INTERMEDIAIRE
+  AVANCE
+}
+
+enum FormationStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Module {
+  id                    String    @id @default(cuid())
+  title                 String
+  description           String
+  duration              Int       // en minutes
+  type                  ModuleType
+  content               String
+  order                 Int       @default(0)
+  
+  formationId           String
+  formation             Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  // Relations
+  quiz                  Quiz?
+  resources             Resource[]
+  
+  @@map("modules")
+}
+
+enum ModuleType {
+  VIDEO
+  TEXT
+  QUIZ
+  EXERCISE
+}
+
+model Resource {
+  id                    String    @id @default(cuid())
+  title                 String
+  type                  ResourceType
+  url                   String
+  
+  moduleId              String
+  module                Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  createdAt             DateTime  @default(now())
+  
+  @@map("resources")
+}
+
+enum ResourceType {
+  PDF
+  LINK
+  VIDEO
+  DOCUMENT
+}
+
+// ===============================
+// SYSTÈME DE QUIZ
+// ===============================
+
+model Quiz {
+  id                    String    @id @default(cuid())
+  passingScore          Int       @default(70)
+  timeLimit             Int?      // en minutes
+  allowRetries          Boolean   @default(true)
+  showCorrectAnswers    Boolean   @default(true)
+  
+  moduleId              String    @unique
+  module                Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  // Relations
+  questions             QuizQuestion[]
+  sessions              QuizSession[]
+  
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id                    String    @id @default(cuid())
+  question              String
+  type                  QuestionType
+  options               String[]
+  correctAnswer         String    // JSON string
+  explanation           String?
+  points                Int       @default(1)
+  order                 Int       @default(0)
+  
+  quizId                String
+  quiz                  Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  
+  createdAt             DateTime  @default(now())
+  
+  // Relations
+  answers               QuizAnswer[]
+  
+  @@map("quiz_questions")
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  OPEN_ENDED
+}
+
+model QuizSession {
+  id                    String    @id @default(cuid())
+  startedAt             DateTime
+  completedAt           DateTime?
+  timeLimit             Int?      // en minutes
+  score                 Float?
+  passed                Boolean?
+  status                SessionStatus @default(IN_PROGRESS)
+  
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  quizId                String
+  quiz                  Quiz      @relation(fields: [quizId], references: [id])
+  
+  // Relations
+  answers               QuizAnswer[]
+  
+  @@map("quiz_sessions")
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  TIMEOUT
+  ABANDONED
+}
+
+model QuizAnswer {
+  id                    String    @id @default(cuid())
+  answer                String    // JSON string
+  isCorrect             Boolean
+  points                Int       @default(0)
+  
+  sessionId             String
+  session               QuizSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId            String
+  question              QuizQuestion @relation(fields: [questionId], references: [id])
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  
+  createdAt             DateTime  @default(now())
+  
+  @@map("quiz_answers")
+}
+
+// ===============================
+// SYSTÈME D'INSCRIPTION
+// ===============================
+
+model Enrollment {
+  id                    String    @id @default(cuid())
+  enrolledAt            DateTime  @default(now())
+  completedAt           DateTime?
+  status                EnrollmentStatus @default(ACTIVE)
+  
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  formationId           String
+  formation             Formation @relation(fields: [formationId], references: [id])
+  
+  @@unique([userId, formationId])
+  @@map("enrollments")
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+  SUSPENDED
+}
+
+// ===============================
+// SYSTÈME DE SUIVI DES PROGRÈS
+// ===============================
+
+model UserProgress {
+  id                    String    @id @default(cuid())
+  completedModules      Int       @default(0)
+  progressPercentage    Float     @default(0)
+  lastModuleCompleted   String?
+  timeSpent             Int       @default(0) // en minutes
+  startedAt             DateTime
+  lastAccessedAt        DateTime?
+  
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  formationId           String
+  formation             Formation @relation(fields: [formationId], references: [id])
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  @@unique([userId, formationId])
+  @@map("user_progress")
+}
+
+// ===============================
+// SYSTÈME DE CERTIFICATION
+// ===============================
+
+model Certificate {
+  id                    String    @id @default(cuid())
+  certificateNumber     String    @unique
+  issuedAt              DateTime  @default(now())
+  isValid               Boolean   @default(true)
+  verificationHash      String?
+  
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+  formationId           String
+  formation             Formation @relation(fields: [formationId], references: [id])
+  
+  @@unique([userId, formationId])
+  @@map("certificates")
+}
+
+// ===============================
+// SYSTÈME DE PAIEMENT (OPTIONNEL)
+// ===============================
+
+model Payment {
+  id                    String    @id @default(cuid())
+  amount                Float
+  currency              String    @default("XOF")
+  status                PaymentStatus
+  paymentMethod         String
+  transactionId         String?
+  
+  userId                String
+  formationId           String
+  enrollmentId          String?
+  
+  createdAt             DateTime  @default(now())
+  paidAt                DateTime?
+  
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// ===============================
+// SYSTÈME DE NOTIFICATIONS
+// ===============================
+
+model Notification {
+  id                    String    @id @default(cuid())
+  title                 String
+  message               String
+  type                  NotificationType
+  isRead                Boolean   @default(false)
+  
+  userId                String
+  relatedEntityId       String?
+  relatedEntityType     String?
+  
+  createdAt             DateTime  @default(now())
+  readAt                DateTime?
+  
+  @@map("notifications")
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  REMINDER
+}
+
+// ===============================
+// SYSTÈME DE FEEDBACK
+// ===============================
+
+model Review {
+  id                    String    @id @default(cuid())
+  rating                Int       // 1-5
+  comment               String?
+  isPublic              Boolean   @default(true)
+  
+  userId                String
+  formationId           String
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  @@unique([userId, formationId])
+  @@map("reviews")
+}
+
+// ===============================
+// SYSTÈME DE SESSIONS
+// ===============================
+
+model UserSession {
+  id                    String    @id @default(cuid())
+  sessionId             String    @unique
+  data                  Json      // Stockage des données de session incluant le token
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Informations de session
+  ipAddress             String
+  userAgent             String
+  isActive              Boolean   @default(true)
+  
+  // Timestamps
+  createdAt             DateTime  @default(now())
+  lastActivity          DateTime  @default(now())
+  expiresAt             DateTime
+  
+  @@map("user_sessions")
+}
+
+// ===============================
+// SYSTÈME D'ARTICLES
+// ===============================
+
+model Article {
+  id                    String    @id @default(cuid())
+  title                 String
+  subtitle              String?
+  excerpt               String
+  category              String
+  tags                  String[]
+  author                String
+  authorId              String
+  publishDate           String
+  publishTime           String
+  status                ArticleStatus @default(DRAFT)
+  featured              Boolean   @default(false)
+  allowComments         Boolean   @default(true)
+  featuredImage         String?
+  blocks                Json      // Contenu structuré en blocs
+  seoTitle              String?
+  seoDescription        String?
+  views                 Int       @default(0)
+  likes                 Int       @default(0)
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  publishedAt           DateTime?
+  
+  // Relations
+  authorUser            User      @relation(fields: [authorId], references: [id])
+  
+  @@map("articles")
+}
+
+enum ArticleStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+// ===============================
+// LOGS ET ANALYTICS
+// ===============================
+
+model UserActivity {
+  id                    String    @id @default(cuid())
+  action                String
+  details               String?   // JSON
+  ipAddress             String?
+  userAgent             String?
+  success               Boolean   @default(true)
+  errorMessage          String?
+  timestamp             DateTime  @default(now())
+  
+  userId                String?
+  user                  User?     @relation(fields: [userId], references: [id])
+  
+  @@map("user_activities")
+}
+
+model ActivityLog {
+  id                    String    @id @default(cuid())
+  action                String
+  entityType            String
+  entityId              String
+  details               String?   // JSON
+  ipAddress             String?
+  userAgent             String?
+  
+  userId                String?
+  
+  createdAt             DateTime  @default(now())
+  
+  @@map("activity_logs")
+}

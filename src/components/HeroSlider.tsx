@@ -19,12 +19,12 @@ interface SlideData {
 const slides: SlideData[] = [
   {
     id: 1,
-    image: '/assets/images/slider1.jpg',
-    title: 'Renforcez la cybersécurité',
-    subtitle: 'de votre ONG',
-    description: 'E-ARONCY est une plateforme collaborative dédiée au renforcement des capacités en cybersécurité des ONG et institutions en Afrique de l\'Ouest.',
-    buttonText: 'Commencer maintenant',
-    buttonLink: '/register',
+    image: '/assets/images/slidearon1.jpg',
+    title: 'Consolider les acquis de la phase II',
+    subtitle: 'et mobiliser un engagement régional fort',
+    description: 'Consolider les acquis de la phase II et mobiliser un engagement régional fort autour de la cybersécurité en milieu ONG',
+    buttonText: 'En savoir plus',
+    buttonLink: '/ressources/guides-pratiques/plan-action-cybersecurite-ong',
     icon: <Shield className="h-8 w-8" />
   },
   {

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Shield, Users, BookOpen, Globe, ChevronRight, Star, Award, Zap, GraduationCap, Lock, Heart } from "lucide-react";
+import { Shield, Users, BookOpen, Globe, ChevronRight, Star, Award, Zap, GraduationCap, Lock, Heart, Wrench } from "lucide-react";
 import InteractiveAfricaMap from "@/components/InteractiveAfricaMap";
 import HeroSlider from "@/components/HeroSlider";
 import Header from "@/components/Header";
@@ -14,25 +14,53 @@ export default function Home() {
       {/* Hero Slider */}
       <HeroSlider />
 
-      {/* Stats Section */}
-      <section className="py-16 bg-white">
+      {/* Welcome Section */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-blue-600 mb-2">500+</div>
-              <div className="text-slate-600">ONG formées</div>
+          <div className="max-w-4xl mx-auto text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-display font-bold text-slate-900 mb-6">
+              Bienvenue sur le portail e-ARONCY
+            </h2>
+            <div className="text-lg text-slate-600 leading-relaxed space-y-6 text-left">
+              <p>
+                La cybersécurité peut parfois sembler compliquée ou réservée aux spécialistes. Beaucoup d'ONG se sentent démunies face à ce sujet, par manque de moyens ou de connaissances techniques. Pourtant, il existe des solutions simples, pratiques et adaptées que chaque organisation peut mettre en place pour mieux se protéger.
+              </p>
+              <p>
+                En Afrique comme ailleurs, les acteurs de terrain utilisent de plus en plus le numérique pour communiquer, gérer des projets, protéger des données sensibles ou mobiliser des ressources. Cela fait aussi des ONG des cibles de choix pour les cyberattaques : vols de données, escroqueries en ligne, hameçonnage, piratages… Ces incidents peuvent fragiliser non seulement les systèmes, mais aussi la confiance des communautés et des partenaires.
+              </p>
             </div>
-            <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-green-600 mb-2">15</div>
-              <div className="text-slate-600">Pays couverts</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-purple-600 mb-2">1000+</div>
-              <div className="text-slate-600">Professionnels</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl lg:text-4xl font-bold text-orange-600 mb-2">24/7</div>
-              <div className="text-slate-600">Support</div>
+          </div>
+
+          {/* Mission Statement */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 lg:p-12 border border-blue-100">
+            <h3 className="text-2xl lg:text-3xl font-display font-bold text-slate-900 mb-6 text-center">
+              C'est pour répondre à ce défi qu'a été créé le portail e-ARONCY
+            </h3>
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="bg-blue-600 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <Shield className="h-8 w-8 text-white" />
+                </div>
+                <p className="text-slate-700">
+                  Rendre la cybersécurité accessible à toutes les ONG, même celles qui n'ont pas d'experts informatiques
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="bg-green-600 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <Wrench className="h-8 w-8 text-white" />
+                </div>
+                <p className="text-slate-700">
+                  Proposer des outils et bonnes pratiques faciles à appliquer, au quotidien
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="bg-orange-600 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <Users className="h-8 w-8 text-white" />
+                </div>
+                <p className="text-slate-700">
+                  Accompagner les ONG africaines à renforcer leur protection numérique, pas à pas
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -46,7 +74,7 @@ export default function Home() {
               Notre approche en trois piliers
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              E-ARONCY accompagne les ONG d'Afrique de l'Ouest dans leur transformation numérique sécurisée
+              Un espace pédagogique, collaboratif et tourné vers l'action pour que chaque ONG puisse avancer sereinement dans le monde numérique
             </p>
           </div>
 
@@ -154,23 +182,18 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Bottom Image Section */}
-          <div className="relative max-w-3xl mx-auto">
-            <Image
-              src="/assets/images/im.jpg"
-              alt="Équipe cybersécurité E-ARONCY"
-              width={800}
-              height={400}
-              className="w-full h-auto object-cover rounded-2xl shadow-xl"
-            />
-            <div className="absolute inset-0 bg-aroncy-gradient opacity-90 rounded-2xl"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center text-white">
-                <h3 className="text-2xl lg:text-3xl font-display font-bold mb-2">
-                  Ensemble, sécurisons l'Afrique de l'Ouest
-                </h3>
-                <p className="text-lg opacity-90">
-                  Une alliance pour un écosystème numérique résilient
+          {/* What You'll Find Here */}
+          <div className="max-w-4xl mx-auto mt-16">
+            <div className="bg-white rounded-2xl p-8 lg:p-12 shadow-lg border border-slate-200">
+              <h3 className="text-2xl lg:text-3xl font-display font-bold text-slate-900 mb-6 text-center">
+                Ce que vous trouverez ici
+              </h3>
+              <div className="text-lg text-slate-600 leading-relaxed space-y-4">
+                <p>
+                  Ici, vous trouverez des <strong>explications claires</strong>, des <strong>guides pratiques</strong>, des <strong>formations courtes</strong> et des <strong>retours d'expérience</strong> d'autres ONG. L'idée n'est pas de vous faire peur, mais de vous donner confiance : avec de petits gestes et de bonnes habitudes, vous pouvez déjà améliorer considérablement votre sécurité numérique.
+                </p>
+                <p className="text-center text-xl font-medium text-aroncy-blue">
+                  e-ARONCY est donc un espace pédagogique, collaboratif et tourné vers l'action, pour que chaque ONG, quelle que soit sa taille, puisse avancer sereinement dans le monde numérique.
                 </p>
               </div>
             </div>

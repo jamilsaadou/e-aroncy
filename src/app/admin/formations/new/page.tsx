@@ -312,9 +312,116 @@ export default function NewFormation() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Formation submitted:', { ...formData, modules });
+    
+    if (!formData.title || !formData.description || !formData.instructor) {
+      alert('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    try {
+      // Préparer les données pour l'API
+      const formationPayload = {
+        title: formData.title,
+        description: formData.description,
+        shortDescription: formData.shortDescription,
+        category: formData.category.toUpperCase(),
+        level: formData.level.toUpperCase(),
+        instructor: formData.instructor,
+        duration: formData.duration,
+        price: formData.price ? parseFloat(formData.price) : 0,
+        maxEnrollments: formData.maxEnrollments ? parseInt(formData.maxEnrollments) : undefined,
+        language: formData.language,
+        tags: formData.tags,
+        prerequisites: formData.prerequisites,
+        objectives: formData.objectives,
+        status: formData.status.toUpperCase(),
+        featured: formData.featured,
+        certificateEnabled: formData.certificateEnabled,
+        allowDiscussions: formData.allowDiscussions
+      };
+
+      // Créer la formation
+      const response = await fetch('/api/formations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formationPayload),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur lors de la création');
+      }
+
+      const result = await response.json();
+      const formationId = result.formation.id;
+
+      // Ajouter les modules
+      for (const module of modules) {
+        const modulePayload = {
+          title: module.title,
+          description: module.description,
+          duration: module.duration,
+          type: module.type.toUpperCase(),
+          content: module.content,
+          order: modules.indexOf(module)
+        };
+
+        const moduleResponse = await fetch(`/api/formations/${formationId}/modules`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(modulePayload),
+        });
+
+        if (!moduleResponse.ok) {
+          console.error('Erreur lors de l\'ajout du module:', module.title);
+          continue;
+        }
+
+        const moduleResult = await moduleResponse.json();
+        const moduleId = moduleResult.module.id;
+
+        // Ajouter le quiz si présent
+        if (module.quiz && module.quiz.questions.length > 0) {
+          const quizPayload = {
+            passingScore: module.quiz.passingScore,
+            timeLimit: module.quiz.timeLimit,
+            allowRetries: module.quiz.allowRetries,
+            showCorrectAnswers: module.quiz.showCorrectAnswers,
+            questions: module.quiz.questions.map(q => ({
+              question: q.question,
+              type: q.type.toUpperCase().replace('-', '_'),
+              options: q.options,
+              correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer.toString() : q.correctAnswer,
+              explanation: q.explanation,
+              points: q.points
+            }))
+          };
+
+          await fetch(`/api/modules/${moduleId}/quiz`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(quizPayload),
+          });
+        }
+      }
+
+      alert('Formation créée avec succès !');
+      
+      // Rediriger vers la liste des formations
+      window.location.href = '/admin/formations';
+
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de la création de la formation: ' + (error as Error).message);
+    }
   };
 
   const getTotalDuration = () => {
