@@ -1,94 +1,54 @@
+'use client';
+
 import Link from "next/link";
 import Header from '@/components/Header';
 import { Shield, Calendar, User, Clock, ChevronRight, FileText, TrendingUp, AlertCircle, Zap, Globe, Users } from "lucide-react";
+import { useEffect, useState } from 'react';
+
+interface Article {
+  id: string;
+  title: string;
+  subtitle?: string;
+  excerpt: string;
+  category: string;
+  tags: string[];
+  author: string;
+  authorRole: string;
+  publishDate: string;
+  readTime: string;
+  featured: boolean;
+  color: string;
+  views: number;
+  likes: number;
+}
 
 export default function Articles() {
-  const articles = [
-    {
-      id: 1,
-      title: "L'évolution des cybermenaces en Afrique de l'Ouest en 2024",
-      excerpt: "Analyse approfondie des nouvelles tendances en matière de cybercriminalité et des défis spécifiques aux organisations de la région.",
-      author: "Dr. Aminata Koné",
-      authorRole: "Expert en cybersécurité",
-      publishDate: "15 Janvier 2025",
-      readTime: "8 min",
-      category: "Analyse",
-      tags: ["Cybermenaces", "Afrique", "Tendances"],
-      featured: true,
-      color: "red",
-      icon: <AlertCircle className="h-6 w-6" />
-    },
-    {
-      id: 2,
-      title: "Comment les ONG peuvent-elles se protéger contre le ransomware ?",
-      excerpt: "Guide complet pour comprendre, prévenir et réagir face aux attaques de ransomware ciblant les organisations humanitaires.",
-      author: "Ibrahim Traoré",
-      authorRole: "Consultant en sécurité",
-      publishDate: "12 Janvier 2025",
-      readTime: "12 min",
-      category: "Prévention",
-      tags: ["Ransomware", "ONG", "Protection"],
-      featured: true,
-      color: "orange",
-      icon: <Shield className="h-6 w-6" />
-    },
-    {
-      id: 3,
-      title: "L'importance de la formation en cybersécurité pour les équipes",
-      excerpt: "Pourquoi investir dans la formation de vos collaborateurs est le meilleur rempart contre les cyberattaques.",
-      author: "Fatou Diallo",
-      authorRole: "Formatrice certifiée",
-      publishDate: "10 Janvier 2025",
-      readTime: "6 min",
-      category: "Formation",
-      tags: ["Formation", "Équipes", "Sensibilisation"],
-      featured: false,
-      color: "blue",
-      icon: <Users className="h-6 w-6" />
-    },
-    {
-      id: 4,
-      title: "Réglementation GDPR et protection des données en Afrique",
-      excerpt: "Comment adapter les principes du RGPD au contexte africain et assurer la conformité de votre organisation.",
-      author: "Maître Koffi Asante",
-      authorRole: "Juriste spécialisé",
-      publishDate: "8 Janvier 2025",
-      readTime: "15 min",
-      category: "Juridique",
-      tags: ["RGPD", "Données", "Conformité"],
-      featured: false,
-      color: "purple",
-      icon: <Globe className="h-6 w-6" />
-    },
-    {
-      id: 5,
-      title: "Technologies émergentes et nouveaux défis sécuritaires",
-      excerpt: "Intelligence artificielle, IoT, blockchain : comment ces technologies transforment le paysage de la cybersécurité.",
-      author: "Prof. Ousmane Ba",
-      authorRole: "Chercheur en cybersécurité",
-      publishDate: "5 Janvier 2025",
-      readTime: "10 min",
-      category: "Innovation",
-      tags: ["IA", "IoT", "Blockchain"],
-      featured: false,
-      color: "green",
-      icon: <Zap className="h-6 w-6" />
-    },
-    {
-      id: 6,
-      title: "Retour d'expérience : Incident de sécurité dans une ONG",
-      excerpt: "Étude de cas détaillée d'un incident de sécurité et des leçons apprises pour améliorer la résilience organisationnelle.",
-      author: "Marie Kouassi",
-      authorRole: "RSSI",
-      publishDate: "3 Janvier 2025",
-      readTime: "14 min",
-      category: "Cas d'étude",
-      tags: ["Incident", "Retour d'expérience", "Résilience"],
-      featured: false,
-      color: "indigo",
-      icon: <TrendingUp className="h-6 w-6" />
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchArticles();
+  }, []);
+
+  const fetchArticles = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/articles/public?limit=20');
+      const data = await response.json();
+
+      if (data.success) {
+        setArticles(data.articles);
+      } else {
+        setError('Erreur lors du chargement des articles');
+      }
+    } catch (err) {
+      console.error('Erreur:', err);
+      setError('Erreur lors du chargement des articles');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const getColorClasses = (color: string) => {
     const colors = {
@@ -100,6 +60,20 @@ export default function Articles() {
       red: "bg-red-50 border-red-200 text-red-800"
     };
     return colors[color as keyof typeof colors] || colors.blue;
+  };
+
+  const getCategoryIcon = (category: string) => {
+    const iconMap: { [key: string]: React.ReactElement } = {
+      'analyse': <AlertCircle className="h-6 w-6" />,
+      'actualites': <FileText className="h-6 w-6" />,
+      'guides-pratiques': <Shield className="h-6 w-6" />,
+      'formation': <Users className="h-6 w-6" />,
+      'boite-outils': <Zap className="h-6 w-6" />,
+      'juridique': <Globe className="h-6 w-6" />,
+      'innovation': <Zap className="h-6 w-6" />,
+      'cas-etude': <TrendingUp className="h-6 w-6" />
+    };
+    return iconMap[category] || <FileText className="h-6 w-6" />;
   };
 
   const featuredArticles = articles.filter(article => article.featured);
@@ -149,14 +123,44 @@ export default function Articles() {
             <p className="text-xl text-slate-600">Les dernières analyses de nos experts</p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8 mb-16">
+          {loading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
+                <p className="text-red-800">{error}</p>
+              </div>
+              <button 
+                onClick={fetchArticles}
+                className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Réessayer
+              </button>
+            </div>
+          )}
+
+          {!loading && !error && articles.length === 0 && (
+            <div className="text-center py-20">
+              <FileText className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">Aucun article disponible</h3>
+              <p className="text-slate-600">Les articles seront bientôt disponibles.</p>
+            </div>
+          )}
+
+          {!loading && !error && featuredArticles.length > 0 && (
+            <div className="grid lg:grid-cols-2 gap-8 mb-16">
             {featuredArticles.map((article) => (
               <div key={article.id} className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
                 <div className="p-8">
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className={`p-3 rounded-lg ${getColorClasses(article.color)}`}>
-                      {article.icon}
+                      {getCategoryIcon(article.category)}
                     </div>
                     <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-medium">
                       À la une
@@ -210,21 +214,24 @@ export default function Articles() {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )}
 
           {/* Regular Articles */}
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-slate-900 mb-8">Tous les articles</h2>
-          </div>
+          {!loading && !error && regularArticles.length > 0 && (
+            <>
+              <div className="mb-12">
+                <h2 className="text-2xl font-bold text-slate-900 mb-8">Tous les articles</h2>
+              </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {regularArticles.map((article) => (
               <div key={article.id} className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
                 <div className="p-6">
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className={`p-2 rounded-lg ${getColorClasses(article.color)}`}>
-                      {article.icon}
+                      {getCategoryIcon(article.category)}
                     </div>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getColorClasses(article.color)}`}>
                       {article.category}
@@ -265,7 +272,9 @@ export default function Articles() {
                 </div>
               </div>
             ))}
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </section>
 

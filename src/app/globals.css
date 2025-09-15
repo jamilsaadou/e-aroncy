@@ -99,4 +99,43 @@
   .aroncy-logo-cy {
     color: var(--aroncy-green);
   }
+
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  /* Responsive utilities for admin interface */
+  .admin-content-spacing {
+    @apply p-3 sm:p-4 lg:p-6;
+  }
+
+  .admin-card-padding {
+    @apply p-3 sm:p-4 lg:p-6;
+  }
+
+  .admin-text-responsive {
+    @apply text-xs sm:text-sm lg:text-base;
+  }
+
+  .admin-heading-responsive {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
 }

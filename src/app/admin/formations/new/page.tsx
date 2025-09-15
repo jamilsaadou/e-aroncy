@@ -69,7 +69,7 @@ export default function NewFormation() {
     description: '',
     shortDescription: '',
     category: '',
-    level: '',
+    level: 'DEBUTANT', // Valeur par défaut
     instructor: '',
     duration: '', // durée totale en heures
     price: '',
@@ -78,7 +78,7 @@ export default function NewFormation() {
     tags: [] as string[],
     prerequisites: [] as string[],
     objectives: [] as string[],
-    status: 'draft',
+    status: 'DRAFT',
     featured: false,
     certificateEnabled: true,
     allowDiscussions: true,
@@ -96,16 +96,16 @@ export default function NewFormation() {
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
 
   const categories = [
-    { value: 'cybersecurite', label: 'Cybersécurité', description: 'Formations sur la sécurité informatique et la protection des données' },
-    { value: 'sensibilisation', label: 'Sensibilisation', description: 'Formations de sensibilisation aux risques numériques' },
-    { value: 'technique', label: 'Technique', description: 'Formations techniques approfondies' },
-    { value: 'management', label: 'Management', description: 'Formations sur la gestion et le management de la sécurité' }
+    { value: 'CYBERSECURITE', label: 'Cybersécurité', description: 'Formations sur la sécurité informatique et la protection des données' },
+    { value: 'SENSIBILISATION', label: 'Sensibilisation', description: 'Formations de sensibilisation aux risques numériques' },
+    { value: 'TECHNIQUE', label: 'Technique', description: 'Formations techniques approfondies' },
+    { value: 'MANAGEMENT', label: 'Management', description: 'Formations sur la gestion et le management de la sécurité' }
   ];
 
   const levels = [
-    { value: 'debutant', label: 'Débutant', description: 'Aucune connaissance préalable requise' },
-    { value: 'intermediaire', label: 'Intermédiaire', description: 'Connaissances de base requises' },
-    { value: 'avance', label: 'Avancé', description: 'Expertise technique requise' }
+    { value: 'DEBUTANT', label: 'Débutant', description: 'Aucune connaissance préalable requise' },
+    { value: 'INTERMEDIAIRE', label: 'Intermédiaire', description: 'Connaissances de base requises' },
+    { value: 'AVANCE', label: 'Avancé', description: 'Expertise technique requise' }
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -326,8 +326,8 @@ export default function NewFormation() {
         title: formData.title,
         description: formData.description,
         shortDescription: formData.shortDescription,
-        category: formData.category.toUpperCase(),
-        level: formData.level.toUpperCase(),
+        category: formData.category,
+        level: formData.level,
         instructor: formData.instructor,
         duration: formData.duration,
         price: formData.price ? parseFloat(formData.price) : 0,
@@ -336,7 +336,7 @@ export default function NewFormation() {
         tags: formData.tags,
         prerequisites: formData.prerequisites,
         objectives: formData.objectives,
-        status: formData.status.toUpperCase(),
+        status: formData.status,
         featured: formData.featured,
         certificateEnabled: formData.certificateEnabled,
         allowDiscussions: formData.allowDiscussions
@@ -1282,9 +1282,9 @@ export default function NewFormation() {
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="draft">Brouillon</option>
-                    <option value="published">Publié</option>
-                    <option value="archived">Archivé</option>
+                    <option value="DRAFT">Brouillon</option>
+                    <option value="PUBLISHED">Publié</option>
+                    <option value="ARCHIVED">Archivé</option>
                   </select>
                 </div>
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Shield, Users, Globe, Target, Heart, Award, ChevronRight, MapPin, Calendar, TrendingUp, BookOpen, AlertTriangle, Gavel, MessageSquare, BarChart3, Eye, UserCheck, Star, Quote, Zap, Lock, Network, Lightbulb } from "lucide-react";
+import { Shield, Users, Globe, Target, Heart, Award, ChevronRight, MapPin, Calendar, TrendingUp, BookOpen, AlertTriangle, Gavel, MessageSquare, BarChart3, Eye, UserCheck, Star, Quote, Lock, Lightbulb } from "lucide-react";
 import Header from "@/components/Header";
 
 export default function APropos() {
@@ -204,19 +204,19 @@ export default function APropos() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-4xl lg:text-6xl font-display font-bold mb-6">
-                À propos d'E-ARONCY
+                À propos d&apos;E-ARONCY
               </h1>
               <h2 className="text-2xl lg:text-3xl font-display font-semibold mb-6 text-white/90">
-                Alliance Régionale pour la Cybersécurité des ONG en Afrique de l'Ouest
+                Alliance Régionale pour la Cybersécurité des ONG en Afrique de l&apos;Ouest
               </h2>
               <p className="text-xl text-blue-100 mb-8 leading-relaxed">
                 ARONCY est une initiative collaborative dédiée à renforcer la cybersécurité 
-                des organisations de la société civile en Afrique de l'Ouest, en offrant 
+                des organisations de la société civile en Afrique de l&apos;Ouest, en offrant 
                 des formations, des ressources et un accompagnement adapté aux réalités locales.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/adhesion" className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-all inline-flex items-center justify-center">
-                  Rejoindre l'alliance
+                  Rejoindre l&apos;alliance
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Link>
                 <Link href="/knowledge-base" className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-all text-center">
@@ -227,7 +227,7 @@ export default function APropos() {
             <div className="relative">
               <Image
                 src="/assets/images/africa-map.jpg"
-                alt="Carte de l'Afrique de l'Ouest"
+                alt="Carte de l&apos;Afrique de l&apos;Ouest"
                 width={500}
                 height={400}
                 className="w-full h-auto object-cover rounded-2xl shadow-lg"
@@ -261,12 +261,12 @@ export default function APropos() {
               </h2>
               <p className="text-xl text-slate-600 mb-6 leading-relaxed">
                 Favoriser un écosystème numérique sûr, résilient et inclusif pour les ONG 
-                opérant en Afrique de l'Ouest, afin de protéger efficacement les données sensibles 
+                opérant en Afrique de l&apos;Ouest, afin de protéger efficacement les données sensibles 
                 des communautés et garantir la continuité de leurs missions sociales.
               </p>
               <p className="text-lg text-slate-600 mb-8">
-                Notre vision s'articule autour de la protection des données des communautés 
-                vulnérables et de l'accompagnement des organisations dans leur transformation 
+                Notre vision s&apos;articule autour de la protection des données des communautés 
+                vulnérables et de l&apos;accompagnement des organisations dans leur transformation 
                 numérique sécurisée.
               </p>
             </div>
@@ -282,7 +282,7 @@ export default function APropos() {
               Implémentation actuelle
             </h2>
             <p className="text-xl text-slate-600">
-              Un déploiement progressif à travers l'Afrique de l'Ouest
+              Un déploiement progressif à travers l&apos;Afrique de l&apos;Ouest
             </p>
           </div>
           
@@ -313,7 +313,7 @@ export default function APropos() {
                 <ul className="space-y-2">
                   <li className="flex items-center text-slate-700">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                    Côte d'Ivoire
+                    Côte d&apos;Ivoire
                   </li>
                   <li className="flex items-center text-slate-700">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
@@ -330,9 +330,9 @@ export default function APropos() {
                   <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
                   Phase 2 (2024–2025)
                 </h3>
-                <p className="text-slate-600 mb-4">Extension vers d'autres pays d'Afrique de l'Ouest</p>
+                <p className="text-slate-600 mb-4">Extension vers d&apos;autres pays d&apos;Afrique de l&apos;Ouest</p>
                 <p className="text-slate-700">
-                  Élargissement progressif de l'alliance pour couvrir l'ensemble de la région 
+                  Élargissement progressif de l&apos;alliance pour couvrir l&apos;ensemble de la région 
                   ouest-africaine avec des adaptations locales spécifiques.
                 </p>
               </div>
@@ -475,7 +475,7 @@ export default function APropos() {
               Nos Réalisations
             </div>
             <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
-              L'impact d'ARONCY en chiffres
+              L&apos;impact d&apos;ARONCY en chiffres
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               Des résultats concrets qui témoignent de notre engagement
@@ -512,7 +512,7 @@ export default function APropos() {
               Ce que disent nos membres
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Les retours d'expérience de nos partenaires ONG à travers l'Afrique de l'Ouest
+              Les retours d&apos;expérience de nos partenaires ONG à travers l&apos;Afrique de l&apos;Ouest
             </p>
           </div>
 
@@ -586,14 +586,14 @@ export default function APropos() {
       <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-            Rejoignez l'Alliance ARONCY
+            Rejoignez l&apos;Alliance ARONCY
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Ensemble, construisons un écosystème numérique sûr et résilient pour l'Afrique de l'Ouest
+            Ensemble, construisons un écosystème numérique sûr et résilient pour l&apos;Afrique de l&apos;Ouest
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/adhesion" className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-all inline-flex items-center justify-center">
-              Rejoindre l'alliance
+              Rejoindre l&apos;alliance
               <ChevronRight className="ml-2 h-5 w-5" />
             </Link>
             <Link href="/knowledge-base" className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-all text-center">
@@ -618,7 +618,7 @@ export default function APropos() {
                 />
               </div>
               <p className="text-slate-400">
-                Alliance Régionale pour la Cybersécurité des ONG en Afrique de l'Ouest
+                Alliance Régionale pour la Cybersécurité des ONG en Afrique de l&apos;Ouest
               </p>
             </div>
             
@@ -652,7 +652,7 @@ export default function APropos() {
           </div>
           
           <div className="border-t border-slate-800 mt-12 pt-8 text-center text-slate-400">
-            <p>&copy; 2025 E-ARONCY - Alliance Régionale pour la Cybersécurité des ONG en Afrique de l'Ouest. Tous droits réservés.</p>
+            <p>&copy; 2025 E-ARONCY - Alliance Régionale pour la Cybersécurité des ONG en Afrique de l&apos;Ouest. Tous droits réservés.</p>
           </div>
         </div>
       </footer>

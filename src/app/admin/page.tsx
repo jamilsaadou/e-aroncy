@@ -241,23 +241,24 @@ export default function AdminDashboard() {
       <div className="flex-1 flex flex-col">
         {/* Top Header */}
         <header className="bg-white shadow-sm border-b border-gray-200">
-          <div className="px-6 py-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Tableau de Bord</h1>
-                <p className="text-gray-600 mt-1">Vue d'ensemble de la plateforme e-Aroncy</p>
+          <div className="px-4 sm:px-6 py-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">Tableau de Bord</h1>
+                <p className="text-gray-600 mt-1 text-sm sm:text-base">Vue d'ensemble de la plateforme e-Aroncy</p>
               </div>
               
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center justify-end space-x-2 sm:space-x-4 flex-shrink-0">
                 <Link 
                   href="/admin/statistiques"
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
                 >
                   <BarChart3 className="h-4 w-4" />
-                  <span>Statistiques Détaillées</span>
+                  <span className="hidden sm:inline">Statistiques Détaillées</span>
+                  <span className="sm:hidden">Stats</span>
                 </Link>
                 <button className="relative p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-100">
-                  <Bell className="h-6 w-6" />
+                  <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
                   <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white"></span>
                 </button>
               </div>
@@ -266,10 +267,10 @@ export default function AdminDashboard() {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 p-6 overflow-auto">
-          <div className="space-y-8">
+        <div className="flex-1 p-4 sm:p-6 overflow-auto">
+          <div className="space-y-6 sm:space-y-8">
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {stats.map((stat, index) => (
                 <div key={index} className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
                   <div className="flex items-center justify-between mb-4">
@@ -299,17 +300,17 @@ export default function AdminDashboard() {
             </div>
 
             {/* Charts and Activities */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
               {/* Activity Chart */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Activité des Utilisateurs (7 jours)</h3>
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <TrendingUp className="h-4 w-4 text-green-500" />
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-2 sm:space-y-0">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">Activité des Utilisateurs (7 jours)</h3>
+                  <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-500">
+                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
                     <span>+12.5% cette semaine</span>
                   </div>
                 </div>
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={250}>
                   <AreaChart data={userActivityData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
@@ -339,22 +340,22 @@ export default function AdminDashboard() {
               </div>
 
               {/* Recent Activities */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Activités Récentes</h3>
-                  <Link href="/admin/statistiques" className="text-sm text-blue-600 hover:text-blue-500">
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-2 sm:space-y-0">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">Activités Récentes</h3>
+                  <Link href="/admin/statistiques" className="text-xs sm:text-sm text-blue-600 hover:text-blue-500 self-start sm:self-auto">
                     Voir tout
                   </Link>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {recentActivities.map((activity) => (
                     <div key={activity.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                       <div className="flex-shrink-0 mt-1">
                         {getStatusIcon(activity.status)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900">{activity.message}</p>
-                        <p className="text-xs text-gray-500">{activity.timestamp}</p>
+                        <p className="text-xs sm:text-sm text-gray-900 leading-relaxed">{activity.message}</p>
+                        <p className="text-xs text-gray-500 mt-1">{activity.timestamp}</p>
                       </div>
                     </div>
                   ))}
@@ -363,15 +364,21 @@ export default function AdminDashboard() {
             </div>
 
             {/* Module Performance and Device Usage */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
               {/* Module Performance */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Performance des Modules</h3>
-                <ResponsiveContainer width="100%" height={300}>
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">Performance des Modules</h3>
+                <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={moduleCompletionData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis 
+                      dataKey="name" 
+                      fontSize={12}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis fontSize={12} />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="taux" fill="#10B981" name="Taux de réussite (%)" />
                   </BarChart>
@@ -379,17 +386,17 @@ export default function AdminDashboard() {
               </div>
 
               {/* Device Usage */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Utilisation par Appareil</h3>
-                <div className="flex flex-col lg:flex-row items-center">
-                  <div className="w-full lg:w-1/2">
-                    <ResponsiveContainer width="100%" height={200}>
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">Utilisation par Appareil</h3>
+                <div className="flex flex-col xl:flex-row items-center space-y-4 xl:space-y-0">
+                  <div className="w-full xl:w-1/2">
+                    <ResponsiveContainer width="100%" height={180}>
                       <PieChart>
                         <Pie
                           data={deviceUsageData}
                           cx="50%"
                           cy="50%"
-                          outerRadius={60}
+                          outerRadius={50}
                           fill="#8884d8"
                           dataKey="value"
                           label={({ name, percent }) => `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`}
@@ -402,25 +409,25 @@ export default function AdminDashboard() {
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
-                  <div className="w-full lg:w-1/2 space-y-3">
+                  <div className="w-full xl:w-1/2 space-y-2 sm:space-y-3">
                     {deviceUsageData.map((device, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
+                      <div key={index} className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
                           <div 
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: device.color }}
                           ></div>
-                          <span className="font-medium text-gray-700">{device.name}</span>
+                          <span className="text-sm font-medium text-gray-700">{device.name}</span>
                         </div>
-                        <span className="font-bold text-gray-900">{device.value}%</span>
+                        <span className="text-sm font-bold text-gray-900">{device.value}%</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 rounded-lg">
                   <div className="flex items-center space-x-2">
-                    <Smartphone className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-800">
+                    <Smartphone className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                    <span className="text-xs sm:text-sm font-medium text-blue-800">
                       60% des utilisateurs accèdent via mobile
                     </span>
                   </div>
@@ -429,75 +436,75 @@ export default function AdminDashboard() {
             </div>
 
             {/* Quick Stats and Actions */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
               {/* Quick Stats */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Métriques Rapides</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">Métriques Rapides</h3>
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm font-medium">Temps moyen/session</span>
+                      <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                      <span className="text-xs sm:text-sm font-medium">Temps moyen/session</span>
                     </div>
-                    <span className="font-bold text-gray-900">24m 32s</span>
+                    <span className="text-sm sm:text-base font-bold text-gray-900">24m 32s</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <Target className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">Taux de complétion</span>
+                      <Target className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                      <span className="text-xs sm:text-sm font-medium">Taux de complétion</span>
                     </div>
-                    <span className="font-bold text-green-600">90.1%</span>
+                    <span className="text-sm sm:text-base font-bold text-green-600">90.1%</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <Shield className="h-4 w-4 text-purple-500" />
-                      <span className="text-sm font-medium">Comptes sécurisés</span>
+                      <Shield className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
+                      <span className="text-xs sm:text-sm font-medium">Comptes sécurisés</span>
                     </div>
-                    <span className="font-bold text-purple-600">98.7%</span>
+                    <span className="text-sm sm:text-base font-bold text-purple-600">98.7%</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <Award className="h-4 w-4 text-yellow-500" />
-                      <span className="text-sm font-medium">Certificats délivrés</span>
+                      <Award className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
+                      <span className="text-xs sm:text-sm font-medium">Certificats délivrés</span>
                     </div>
-                    <span className="font-bold text-yellow-600">1,247</span>
+                    <span className="text-sm sm:text-base font-bold text-yellow-600">1,247</span>
                   </div>
                 </div>
               </div>
 
               {/* Quick Actions */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Actions Rapides</h3>
-                <div className="grid grid-cols-1 gap-4">
-                  <Link href="/admin/users/new" className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <Plus className="h-5 w-5 text-blue-600" />
-                    <div>
-                      <span className="text-sm font-medium text-gray-900">Nouvel Utilisateur</span>
-                      <p className="text-xs text-gray-500">Ajouter un utilisateur à la plateforme</p>
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">Actions Rapides</h3>
+                <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                  <Link href="/admin/users/new" className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-xs sm:text-sm font-medium text-gray-900 block">Nouvel Utilisateur</span>
+                      <p className="text-xs text-gray-500 truncate">Ajouter un utilisateur à la plateforme</p>
                     </div>
                   </Link>
                   
-                  <Link href="/admin/formations/new" className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <BookOpen className="h-5 w-5 text-green-600" />
-                    <div>
-                      <span className="text-sm font-medium text-gray-900">Nouvelle Formation</span>
-                      <p className="text-xs text-gray-500">Créer un nouveau module de formation</p>
+                  <Link href="/admin/formations/new" className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-xs sm:text-sm font-medium text-gray-900 block">Nouvelle Formation</span>
+                      <p className="text-xs text-gray-500 truncate">Créer un nouveau module de formation</p>
                     </div>
                   </Link>
                   
-                  <Link href="/admin/statistiques" className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <BarChart3 className="h-5 w-5 text-purple-600" />
-                    <div>
-                      <span className="text-sm font-medium text-gray-900">Statistiques Détaillées</span>
-                      <p className="text-xs text-gray-500">Voir l'analyse complète des données</p>
+                  <Link href="/admin/statistiques" className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-xs sm:text-sm font-medium text-gray-900 block">Statistiques Détaillées</span>
+                      <p className="text-xs text-gray-500 truncate">Voir l'analyse complète des données</p>
                     </div>
                   </Link>
                   
-                  <button className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <Download className="h-5 w-5 text-orange-600" />
-                    <div>
-                      <span className="text-sm font-medium text-gray-900">Export Données</span>
-                      <p className="text-xs text-gray-500">Télécharger les rapports</p>
+                  <button className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Download className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-xs sm:text-sm font-medium text-gray-900 block">Export Données</span>
+                      <p className="text-xs text-gray-500 truncate">Télécharger les rapports</p>
                     </div>
                   </button>
                 </div>
@@ -505,28 +512,28 @@ export default function AdminDashboard() {
             </div>
 
             {/* System Status */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">État du Système</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-3">
-                    <CheckCircle className="h-6 w-6 text-green-600" />
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">État du Système</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                <div className="text-center p-3 sm:p-0">
+                  <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-full mb-2 sm:mb-3">
+                    <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                   </div>
-                  <h4 className="text-sm font-medium text-gray-900">Serveurs</h4>
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-900">Serveurs</h4>
                   <p className="text-xs text-green-600">Opérationnels</p>
                 </div>
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-3">
-                    <Database className="h-6 w-6 text-green-600" />
+                <div className="text-center p-3 sm:p-0">
+                  <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-full mb-2 sm:mb-3">
+                    <Database className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                   </div>
-                  <h4 className="text-sm font-medium text-gray-900">Base de données</h4>
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-900">Base de données</h4>
                   <p className="text-xs text-green-600">Connectée</p>
                 </div>
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-full mb-3">
-                    <Clock className="h-6 w-6 text-yellow-600" />
+                <div className="text-center p-3 sm:p-0">
+                  <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-full mb-2 sm:mb-3">
+                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
                   </div>
-                  <h4 className="text-sm font-medium text-gray-900">Sauvegarde</h4>
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-900">Sauvegarde</h4>
                   <p className="text-xs text-yellow-600">Il y a 2h</p>
                 </div>
               </div>

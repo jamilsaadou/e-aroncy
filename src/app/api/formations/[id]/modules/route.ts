@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/database';
 import { requireRole, createAuthErrorResponse } from '../../../../../lib/auth';
 import { z } from 'zod';
-import { UserRole } from '@prisma/client';
+import { Role } from '@prisma/client';
 
 // Schema de validation pour les modules
 const ModuleSchema = z.object({
@@ -51,7 +51,7 @@ export async function POST(
 ) {
   try {
     // Vérifier l'authentification et les droits admin/instructor
-    const authResult = await requireRole([UserRole.ADMIN, UserRole.INSTRUCTOR])(request);
+    const authResult = await requireRole([Role.ADMIN, Role.INSTRUCTOR])(request);
     if (authResult.error || !authResult.user) {
       return createAuthErrorResponse(authResult.error || 'Non autorisé', 403);
     }

@@ -10,7 +10,17 @@ const FormationSchema = z.object({
   description: z.string().min(10),
   shortDescription: z.string().min(5).max(300),
   category: z.enum(['CYBERSECURITE', 'SENSIBILISATION', 'TECHNIQUE', 'MANAGEMENT']),
-  level: z.enum(['DEBUTANT', 'INTERMEDIAIRE', 'AVANCE']),
+  level: z.string().transform((val) => {
+    // Si le niveau est vide, utiliser DEBUTANT par défaut
+    if (!val || val.trim() === '') {
+      return 'DEBUTANT';
+    }
+    // Vérifier que la valeur est valide
+    if (!['DEBUTANT', 'INTERMEDIAIRE', 'AVANCE'].includes(val)) {
+      throw new Error(`Niveau invalide: ${val}. Valeurs acceptées: DEBUTANT, INTERMEDIAIRE, AVANCE`);
+    }
+    return val;
+  }),
   instructor: z.string().min(2),
   duration: z.string(),
   price: z.number().optional(),
@@ -100,6 +110,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    
+    // Debug: Log des données reçues
+    console.log('Données reçues:', JSON.stringify(body, null, 2));
+    console.log('Category:', body.category, 'Type:', typeof body.category);
+    console.log('Level:', body.level, 'Type:', typeof body.level);
 
     // Valider les données
     const formationData = FormationSchema.parse(body);

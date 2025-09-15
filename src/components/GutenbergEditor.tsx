@@ -35,6 +35,7 @@ interface Article {
   featured: boolean;
   allowComments: boolean;
   featuredImage: File | null;
+  featuredImageUrl?: string;
   blocks: Block[];
   seoTitle: string;
   seoDescription: string;
@@ -202,12 +203,44 @@ const ImageBlock = ({ block, onUpdate, onDelete }: {
   const [alt, setAlt] = useState(block.content.alt || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setImageUrl(url);
-      onUpdate(block.id, { ...block.content, url, file, alt, caption });
+      // Afficher immédiatement l'aperçu
+      const tempUrl = URL.createObjectURL(file);
+      setImageUrl(tempUrl);
+      
+      // Upload du fichier vers le serveur
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        const response = await fetch('/api/articles/media/upload', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Remplacer l'URL temporaire par l'URL permanente
+          setImageUrl(result.data.media.url);
+          onUpdate(block.id, { 
+            ...block.content, 
+            url: result.data.media.url, 
+            fileName: result.data.media.fileName,
+            alt, 
+            caption 
+          });
+        } else {
+          console.error('Erreur upload:', result.error);
+          alert('Erreur lors de l\'upload de l\'image: ' + result.error);
+        }
+      } catch (error) {
+        console.error('Erreur upload:', error);
+        alert('Erreur lors de l\'upload de l\'image');
+      }
     }
   };
 
@@ -483,11 +516,42 @@ export default function GutenbergArticleEditor() {
   };
 
   // Fonction pour gérer l'upload de l'image à la une
-  const handleFeaturedImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFeaturedImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setArticle(prev => ({ ...prev, featuredImage: file }));
-      setImagePreview(URL.createObjectURL(file));
+      // Afficher immédiatement l'aperçu
+      const tempUrl = URL.createObjectURL(file);
+      setImagePreview(tempUrl);
+      
+      // Upload du fichier vers le serveur
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        const response = await fetch('/api/articles/media/upload', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Remplacer l'URL temporaire par l'URL permanente et sauvegarder dans l'article
+          setImagePreview(result.data.media.url);
+          setArticle(prev => ({ 
+            ...prev, 
+            featuredImage: null, // On n'a plus besoin du File object
+            featuredImageUrl: result.data.media.url 
+          }));
+        } else {
+          console.error('Erreur upload:', result.error);
+          alert('Erreur lors de l\'upload de l\'image: ' + result.error);
+        }
+      } catch (error) {
+        console.error('Erreur upload:', error);
+        alert('Erreur lors de l\'upload de l\'image');
+      }
     }
   };
 

@@ -57,7 +57,8 @@ export async function POST(request: NextRequest) {
       contentBlocks,
       seoTitle,
       seoDescription,
-      seoKeywords
+      seoKeywords,
+      featuredImageUrl
     } = body;
 
     // Validation des champs requis
@@ -138,7 +139,7 @@ export async function POST(request: NextRequest) {
         status: article.status! as any,
         featured: article.featured!,
         allowComments: article.allowComments!,
-        featuredImage: article.featuredImage,
+        featuredImage: featuredImageUrl,
         blocks: article.blocks!,
         seoTitle: article.seoTitle,
         seoDescription: article.seoDescription,

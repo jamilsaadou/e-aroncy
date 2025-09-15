@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
 import { 
   Users, 
@@ -61,106 +61,119 @@ interface StatCard {
   description?: string;
 }
 
+interface StatisticsData {
+  mainStats: StatCard[];
+  userGrowthData: any[];
+  diagnosticsData: any[];
+  countryData: any[];
+  deviceData: any[];
+  hourlyActivityData: any[];
+  formationCompletionData: any[];
+  summary: any;
+}
+
 export default function StatistiquesPage() {
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [statisticsData, setStatisticsData] = useState<StatisticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Données pour les graphiques
-  const userGrowthData = [
-    { name: 'Jan', utilisateurs: 2400, nouveaux: 240, actifs: 2100 },
-    { name: 'Fév', utilisateurs: 2600, nouveaux: 280, actifs: 2300 },
-    { name: 'Mar', utilisateurs: 2800, nouveaux: 320, actifs: 2500 },
-    { name: 'Avr', utilisateurs: 2950, nouveaux: 290, actifs: 2650 },
-    { name: 'Mai', utilisateurs: 3100, nouveaux: 350, actifs: 2800 },
-    { name: 'Jun', utilisateurs: 3247, nouveaux: 380, actifs: 2950 },
-    { name: 'Jul', utilisateurs: 3456, nouveaux: 420, actifs: 3100 }
-  ];
+  // Fonction pour récupérer les statistiques
+  const fetchStatistics = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token d\'authentification manquant');
+      }
 
-  const diagnosticsData = [
-    { name: 'Jan', diagnostics: 1200, completes: 980, abandons: 220 },
-    { name: 'Fév', diagnostics: 1350, completes: 1150, abandons: 200 },
-    { name: 'Mar', diagnostics: 1480, completes: 1280, abandons: 200 },
-    { name: 'Avr', diagnostics: 1620, completes: 1420, abandons: 200 },
-    { name: 'Mai', diagnostics: 1750, completes: 1550, abandons: 200 },
-    { name: 'Jun', diagnostics: 1890, completes: 1680, abandons: 210 },
-    { name: 'Jul', diagnostics: 2020, completes: 1820, abandons: 200 }
-  ];
+      const response = await fetch(`/api/admin/statistics?period=${selectedPeriod}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-  const countryData = [
-    { name: 'Niger', value: 1247, color: '#3B82F6', flag: '🇳🇪' },
-    { name: 'Mali', value: 892, color: '#10B981', flag: '🇲🇱' },
-    { name: 'Burkina Faso', value: 756, color: '#F59E0B', flag: '🇧🇫' },
-    { name: 'Sénégal', value: 634, color: '#EF4444', flag: '🇸🇳' },
-    { name: 'Côte d\'Ivoire', value: 523, color: '#8B5CF6', flag: '🇨🇮' },
-    { name: 'Ghana', value: 412, color: '#06B6D4', flag: '🇬🇭' },
-    { name: 'Togo', value: 298, color: '#84CC16', flag: '🇹🇬' },
-    { name: 'Bénin', value: 245, color: '#F97316', flag: '🇧🇯' }
-  ];
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des statistiques');
+      }
 
-  const deviceData = [
-    { name: 'Mobile', value: 60, color: '#3B82F6', icon: <Smartphone className="h-4 w-4" /> },
-    { name: 'Desktop', value: 35, color: '#10B981', icon: <Monitor className="h-4 w-4" /> },
-    { name: 'Tablette', value: 5, color: '#F59E0B', icon: <Tablet className="h-4 w-4" /> }
-  ];
-
-  const hourlyActivityData = [
-    { hour: '00h', activite: 45 },
-    { hour: '02h', activite: 32 },
-    { hour: '04h', activite: 28 },
-    { hour: '06h', activite: 65 },
-    { hour: '08h', activite: 120 },
-    { hour: '10h', activite: 180 },
-    { hour: '12h', activite: 220 },
-    { hour: '14h', activite: 280 },
-    { hour: '16h', activite: 260 },
-    { hour: '18h', activite: 200 },
-    { hour: '20h', activite: 150 },
-    { hour: '22h', activite: 90 }
-  ];
-
-  const formationCompletionData = [
-    { name: 'Cybersécurité de base', completions: 1247, taux: 87 },
-    { name: 'Protection Phishing', completions: 892, taux: 92 },
-    { name: 'Mots de passe sécurisés', completions: 756, taux: 89 },
-    { name: 'Sécurité mobile', completions: 634, taux: 85 },
-    { name: 'Réseaux sociaux', completions: 523, taux: 83 }
-  ];
-
-  // Statistiques principales
-  const mainStats: StatCard[] = [
-    {
-      title: "Inscriptions ce mois",
-      value: "420",
-      change: "+23.4%",
-      changeType: 'positive',
-      icon: <UserCheck className="h-6 w-6" />,
-      description: "Nouveaux utilisateurs"
-    },
-    {
-      title: "Diagnostics effectués",
-      value: "2,020",
-      change: "+15.8%",
-      changeType: 'positive',
-      icon: <Activity className="h-6 w-6" />,
-      description: "Ce mois"
-    },
-    {
-      title: "Utilisateurs Actifs",
-      value: "3,100",
-      change: "+12.5%",
-      changeType: 'positive',
-      icon: <Users className="h-6 w-6" />,
-      description: "Actifs ce mois"
-    },
-    {
-      title: "Taux de Complétion",
-      value: "90.1%",
-      change: "+2.3%",
-      changeType: 'positive',
-      icon: <Target className="h-6 w-6" />,
-      description: "Diagnostics terminés"
+      const data = await response.json();
+      setStatisticsData(data);
+      setError(null);
+    } catch (err) {
+      console.error('Erreur:', err);
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  // Charger les données au montage du composant et quand la période change
+  useEffect(() => {
+    fetchStatistics();
+  }, [selectedPeriod]);
+
+  // Données par défaut en cas de chargement ou d'erreur
+  const defaultData = {
+    mainStats: [
+      {
+        title: "Inscriptions ce mois",
+        value: "0",
+        change: "0%",
+        changeType: 'neutral' as const,
+        icon: <UserCheck className="h-6 w-6" />,
+        description: "Nouveaux utilisateurs"
+      },
+      {
+        title: "Diagnostics effectués",
+        value: "0",
+        change: "0%",
+        changeType: 'neutral' as const,
+        icon: <Activity className="h-6 w-6" />,
+        description: "Ce mois"
+      },
+      {
+        title: "Utilisateurs Actifs",
+        value: "0",
+        change: "0%",
+        changeType: 'neutral' as const,
+        icon: <Users className="h-6 w-6" />,
+        description: "Actifs ce mois"
+      },
+      {
+        title: "Taux de Complétion",
+        value: "0%",
+        change: "0%",
+        changeType: 'neutral' as const,
+        icon: <Target className="h-6 w-6" />,
+        description: "Diagnostics terminés"
+      }
+    ],
+    userGrowthData: [],
+    diagnosticsData: [],
+    countryData: [],
+    deviceData: [
+      { name: 'Mobile', value: 60, color: '#3B82F6', icon: <Smartphone className="h-4 w-4" /> },
+      { name: 'Desktop', value: 35, color: '#10B981', icon: <Monitor className="h-4 w-4" /> },
+      { name: 'Tablette', value: 5, color: '#F59E0B', icon: <Tablet className="h-4 w-4" /> }
+    ],
+    hourlyActivityData: [],
+    formationCompletionData: []
+  };
+
+  // Utiliser les données réelles ou les données par défaut
+  const data = statisticsData || defaultData;
+  const mainStats = data.mainStats.map((stat, index) => ({
+    ...stat,
+    icon: [
+      <UserCheck className="h-6 w-6" key="usercheck" />,
+      <Activity className="h-6 w-6" key="activity" />,
+      <Users className="h-6 w-6" key="users" />,
+      <Target className="h-6 w-6" key="target" />
+    ][index]
+  }));
 
   const getChangeIcon = (changeType: string) => {
     switch (changeType) {
@@ -220,8 +233,12 @@ export default function StatistiquesPage() {
                   <span>Exporter</span>
                 </button>
                 
-                <button className="p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-100">
-                  <RefreshCw className="h-5 w-5" />
+                <button 
+                  onClick={fetchStatistics}
+                  disabled={loading}
+                  className="p-2 text-gray-400 hover:text-gray-500 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
                 </button>
               </div>
             </div>
@@ -230,6 +247,25 @@ export default function StatistiquesPage() {
 
         {/* Content */}
         <div className="flex-1 p-6 overflow-auto">
+          {/* Message d'erreur */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+                <p className="text-red-700">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Indicateur de chargement */}
+          {loading && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center">
+                <RefreshCw className="h-5 w-5 text-blue-500 mr-2 animate-spin" />
+                <p className="text-blue-700">Chargement des statistiques...</p>
+              </div>
+            </div>
+          )}
           {/* Statistiques principales */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {mainStats.map((stat, index) => (
@@ -272,7 +308,7 @@ export default function StatistiquesPage() {
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={userGrowthData}>
+                <AreaChart data={data.userGrowthData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -310,7 +346,7 @@ export default function StatistiquesPage() {
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={diagnosticsData}>
+                <BarChart data={data.diagnosticsData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -333,7 +369,7 @@ export default function StatistiquesPage() {
                   <ResponsiveContainer width="100%" height={250}>
                     <PieChart>
                       <Pie
-                        data={countryData}
+                        data={data.countryData}
                         cx="50%"
                         cy="50%"
                         outerRadius={80}
@@ -341,7 +377,7 @@ export default function StatistiquesPage() {
                         dataKey="value"
                         label={({ name, percent }) => `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`}
                       >
-                        {countryData.map((entry, index) => (
+                        {data.countryData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -350,7 +386,7 @@ export default function StatistiquesPage() {
                   </ResponsiveContainer>
                 </div>
                 <div className="w-full lg:w-1/2 space-y-3">
-                  {countryData.map((country, index) => (
+                  {data.countryData.map((country, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <span className="text-lg">{country.flag}</span>
@@ -370,7 +406,7 @@ export default function StatistiquesPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Activité par Heure</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={hourlyActivityData}>
+                <LineChart data={data.hourlyActivityData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="hour" />
                   <YAxis />
@@ -400,7 +436,7 @@ export default function StatistiquesPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Répartition par Appareil</h3>
               <div className="space-y-4">
-                {deviceData.map((device, index) => (
+                {data.deviceData.map((device, index) => (
                   <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className="p-2 bg-white rounded-lg">
@@ -437,7 +473,7 @@ export default function StatistiquesPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Formations les Plus Populaires</h3>
               <div className="space-y-4">
-                {formationCompletionData.map((formation, index) => (
+                {data.formationCompletionData.map((formation, index) => (
                   <div key={index} className="p-4 border border-gray-200 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium text-gray-900">{formation.name}</h4>
