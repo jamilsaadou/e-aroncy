@@ -524,7 +524,7 @@ export default function APropos() {
                 </div>
                 <div className="mb-6">
                   <p className="text-slate-700 leading-relaxed italic text-lg">
-                    "{testimonial.quote}"
+                    &ldquo;{testimonial.quote}&rdquo;
                   </p>
                 </div>
                 <div className="border-t border-slate-200 pt-6">

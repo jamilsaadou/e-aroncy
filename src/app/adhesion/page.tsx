@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import Link from "next/link";
 import { ChevronRight, Building2, User, Globe, FileText, Shield, CheckCircle, Upload, Heart } from "lucide-react";
 import Header from "@/components/Header";

@@ -1,12 +1,27 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { Shield, Mail, Lock, User, Building, MapPin, Phone, Loader } from "lucide-react";
 import { useSession } from '../../components/SessionProvider';
 
 export default function Register() {
+  // Liste ISO des pays et noms localisés en FR
+  const countries = useMemo(() => {
+    const codes = [
+      'AF','AX','AL','DZ','AS','AD','AO','AI','AQ','AG','AR','AM','AW','AU','AT','AZ','BS','BH','BD','BB','BY','BE','BZ','BJ','BM','BT','BO','BQ','BA','BW','BV','BR','IO','BN','BG','BF','BI','CV','KH','CM','CA','KY','CF','TD','CL','CN','CX','CC','CO','KM','CG','CD','CK','CR','CI','HR','CU','CW','CY','CZ','DK','DJ','DM','DO','EC','EG','SV','GQ','ER','EE','SZ','ET','FK','FO','FJ','FI','FR','GF','PF','TF','GA','GM','GE','DE','GH','GI','GR','GL','GD','GP','GU','GT','GG','GN','GW','GY','HT','HM','VA','HN','HK','HU','IS','IN','ID','IR','IQ','IE','IM','IL','IT','JM','JP','JE','JO','KZ','KE','KI','KP','KR','KW','KG','LA','LV','LB','LS','LR','LY','LI','LT','LU','MO','MG','MW','MY','MV','ML','MT','MH','MQ','MR','MU','YT','MX','FM','MD','MC','MN','ME','MS','MA','MZ','MM','NA','NR','NP','NL','NC','NZ','NI','NE','NG','NU','NF','MK','MP','NO','OM','PK','PW','PS','PA','PG','PY','PE','PH','PN','PL','PT','PR','QA','RE','RO','RU','RW','BL','SH','KN','LC','MF','PM','VC','WS','SM','ST','SA','SN','RS','SC','SL','SG','SX','SK','SI','SB','SO','ZA','GS','SS','ES','LK','SD','SR','SJ','SE','CH','SY','TW','TJ','TZ','TH','TL','TG','TK','TO','TT','TN','TR','TM','TC','TV','UG','UA','AE','GB','US','UM','UY','UZ','VU','VE','VN','VG','VI','WF','EH','YE','ZM','ZW'
+    ];
+    let rn: any = null;
+    try {
+      // @ts-ignore
+      rn = typeof Intl !== 'undefined' && (Intl as any).DisplayNames ? new (Intl as any).DisplayNames(['fr'], { type: 'region' }) : null;
+    } catch {}
+    const list = codes.map(code => ({ code, name: rn ? rn.of(code) as string : code }))
+      .filter(c => !!c.name)
+      .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+    return list;
+  }, []);
   const router = useRouter();
   const { isAuthenticated, isLoading: sessionLoading, user } = useSession();
 
@@ -207,21 +222,9 @@ export default function Register() {
                         className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       >
                         <option value="">Sélectionner un pays</option>
-                        <option value="ci">Côte d'Ivoire</option>
-                        <option value="bf">Burkina Faso</option>
-                        <option value="ne">Niger</option>
-                        <option value="ml">Mali</option>
-                        <option value="sn">Sénégal</option>
-                        <option value="gn">Guinée</option>
-                        <option value="gh">Ghana</option>
-                        <option value="tg">Togo</option>
-                        <option value="bj">Bénin</option>
-                        <option value="lr">Libéria</option>
-                        <option value="sl">Sierra Leone</option>
-                        <option value="gw">Guinée-Bissau</option>
-                        <option value="cv">Cap-Vert</option>
-                        <option value="gm">Gambie</option>
-                        <option value="mr">Mauritanie</option>
+                        {countries.map(c => (
+                          <option key={c.code} value={c.code}>{c.name}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
