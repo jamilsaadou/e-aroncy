@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../lib/database';
 import { createAuthErrorResponse, logUserActivity, verifyEmailVerificationToken } from '../../../../../lib/auth';
+import { getAppUrl } from '../../../../../lib/url';
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,8 +38,10 @@ export async function GET(request: NextRequest) {
     // Optionnel: rediriger vers la page de connexion avec indicateur
     const redirect = url.searchParams.get('redirect');
     if (redirect === 'login') {
-      const appUrl = process.env.APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
-      return NextResponse.redirect(`${appUrl}/login?activated=1`);
+      const appUrl = getAppUrl(request as unknown as Request);
+      const target = new URL('/login', appUrl);
+      target.searchParams.set('activated', '1');
+      return NextResponse.redirect(target);
     }
 
     return NextResponse.json({ success: true, message: 'Compte activé avec succès.' });
@@ -58,4 +61,3 @@ export async function OPTIONS() {
     },
   });
 }
-

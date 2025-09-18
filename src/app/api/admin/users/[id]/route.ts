@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireRole, createAuthErrorResponse, getClientIP, getUserAgent } from '../../../../../lib/auth';
 import { sendAdminTempPasswordEmail, sendPasswordResetLinkEmail } from '../../../../../lib/mailer';
+import { getAppUrl } from '../../../../../lib/url';
 import { generatePasswordResetToken } from '../../../../../lib/auth';
 import prisma from '../../../../../lib/database';
 
@@ -146,8 +147,10 @@ export async function PUT(
       } else if (resetPassword.generateLink) {
         // Générer un lien sécurisé de réinitialisation
         const token = generatePasswordResetToken(existingUser.id, existingUser.email);
-        const appUrl = process.env.APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
-        const link = `${appUrl}/reset-password?token=${encodeURIComponent(token)}`;
+        const appUrl = getAppUrl(request as unknown as Request);
+        const url = new URL('/reset-password', appUrl);
+        url.searchParams.set('token', token);
+        const link = url.toString();
         try {
           await sendPasswordResetLinkEmail(existingUser.email, link);
         } catch (e) {

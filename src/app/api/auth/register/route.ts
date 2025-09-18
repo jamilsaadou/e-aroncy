@@ -8,6 +8,7 @@ import {
 } from '../../../../lib/auth';
 import bcrypt from 'bcryptjs';
 import { sendActivationLinkEmail } from '../../../../lib/mailer';
+import { getAppUrl } from '../../../../lib/url';
 
 export async function POST(request: NextRequest) {
   try {
@@ -108,8 +109,11 @@ export async function POST(request: NextRequest) {
 
     // Générer un lien d'activation et l'envoyer par email
     const token = generateEmailVerificationToken(newUser.id, newUser.email);
-    const appUrl = process.env.APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    const link = `${appUrl}/api/auth/register/activate?token=${encodeURIComponent(token)}&redirect=login`;
+    const appUrl = getAppUrl(request as unknown as Request);
+    const activateUrl = new URL('/api/auth/register/activate', appUrl);
+    activateUrl.searchParams.set('token', token);
+    activateUrl.searchParams.set('redirect', 'login');
+    const link = activateUrl.toString();
     await sendActivationLinkEmail(newUser.email, link);
 
     return NextResponse.json({

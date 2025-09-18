@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/database';
 import { createAuthErrorResponse, logUserActivity, generateEmailVerificationToken } from '../../../../../lib/auth';
 import { sendActivationLinkEmail } from '../../../../../lib/mailer';
+import { getAppUrl } from '../../../../../lib/url';
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,8 +23,11 @@ export async function POST(request: NextRequest) {
     }
 
     const token = generateEmailVerificationToken(user.id, user.email);
-    const appUrl = process.env.APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    const link = `${appUrl}/api/auth/register/activate?token=${encodeURIComponent(token)}&redirect=login`;
+    const appUrl = getAppUrl(request as unknown as Request);
+    const activateUrl = new URL('/api/auth/register/activate', appUrl);
+    activateUrl.searchParams.set('token', token);
+    activateUrl.searchParams.set('redirect', 'login');
+    const link = activateUrl.toString();
     await sendActivationLinkEmail(user.email, link);
 
     await logUserActivity(user.id, 'register_activation_link_resent', request, true);
