@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Shield, Mail, Loader, CheckCircle } from 'lucide-react';
 
 export default function VerifyAccountPage() {
@@ -14,10 +14,10 @@ export default function VerifyAccountPage() {
   const [resendMsg, setResendMsg] = useState('');
   const [activating, setActivating] = useState(false);
   const router = useRouter();
-  const search = useSearchParams();
 
   useEffect(() => {
-    const token = search.get('token');
+    if (typeof window === 'undefined') return;
+    const token = new URLSearchParams(window.location.search).get('token');
     if (!token) return;
     const activate = async () => {
       try {
@@ -34,7 +34,7 @@ export default function VerifyAccountPage() {
       }
     };
     activate();
-  }, [search, router]);
+  }, [router]);
 
   const handleResend = async () => {
     try {

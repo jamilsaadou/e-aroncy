@@ -1,20 +1,26 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Shield, Lock, Loader, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function ResetPasswordPage() {
-  const search = useSearchParams();
   const router = useRouter();
-  const token = search.get('token') || '';
+  const [token, setToken] = useState('');
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const t = new URLSearchParams(window.location.search).get('token') || '';
+      setToken(t);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,4 +115,3 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
-

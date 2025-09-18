@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Shield, Mail, Lock, Eye, EyeOff, Loader, AlertCircle, CheckCircle } from 'lucide-react';
 import { useSession } from '../../components/SessionProvider';
 import Header from '@/components/Header';
@@ -22,10 +22,18 @@ export default function SecureLogin() {
   const [resendMsg, setResendMsg] = useState('');
 
   const router = useRouter();
-  const search = useSearchParams();
-  const activated = search.get('activated') === '1';
-  const infoMsg = activated ? 'Votre compte est activé. Vous pouvez vous connecter.' : '';
+  const [infoMsg, setInfoMsg] = useState('');
   const { isAuthenticated, isLoading: sessionLoading, user } = useSession();
+
+  // Lire le paramètre d'activation depuis l'URL côté client
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('activated') === '1') {
+        setInfoMsg('Votre compte est activé. Vous pouvez vous connecter.');
+      }
+    }
+  }, []);
 
   // Rediriger si l'utilisateur est déjà connecté
   useEffect(() => {
