@@ -4,7 +4,7 @@ import { prisma } from '../../../../../lib/database';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -13,7 +13,7 @@ export async function POST(
       return NextResponse.json({ error: authResult.error || 'Non authentifié' }, { status: 401 });
     }
 
-    const quizId = params.id;
+    const { id: quizId } = await params;
     const userId = authResult.user.id;
 
     // Récupérer le quiz avec ses questions et le module associé

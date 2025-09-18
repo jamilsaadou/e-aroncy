@@ -442,6 +442,68 @@ export async function generateChecklistPDF(
   pdf.save(fileName);
 }
 
+// === Simple attestation de réussite pour une formation ===
+export async function generateFormationCertificatePDF(params: {
+  userName: string;
+  formationTitle: string;
+  certificateNumber: string;
+  issuedAt?: string | Date;
+}) {
+  const { userName, formationTitle, certificateNumber } = params;
+  const issuedAt = params.issuedAt ? new Date(params.issuedAt) : new Date();
+
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  // Fond
+  pdf.setFillColor(248, 250, 252); // slate-50
+  pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
+  // En-tête
+  pdf.setFillColor(59, 130, 246); // blue-500
+  pdf.rect(0, 0, pageWidth, 35, 'F');
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(22);
+  pdf.text('E-ARONCY', pageWidth / 2, 22, { align: 'center' });
+
+  // Titre
+  pdf.setTextColor(17, 24, 39); // gray-900
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(24);
+  pdf.text('Attestation de réussite', pageWidth / 2, 60, { align: 'center' });
+
+  // Corps
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(12);
+  pdf.setTextColor(31, 41, 55); // gray-800
+  const lines1 = `Nous certifions que ${userName} a complété avec succès la formation:`;
+  pdf.text(lines1, pageWidth / 2, 80, { align: 'center' });
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(16);
+  pdf.text(formationTitle, pageWidth / 2, 90, { align: 'center' });
+
+  // Infos
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(12);
+  pdf.text(`Numéro d'attestation: ${certificateNumber}`, pageWidth / 2, 110, { align: 'center' });
+  pdf.text(`Date d'émission: ${issuedAt.toLocaleDateString('fr-FR')}`, pageWidth / 2, 118, { align: 'center' });
+
+  // Signature fictive
+  pdf.setFontSize(10);
+  pdf.text('Alliance Régionale pour la Cybersécurité des ONG', pageWidth / 2, 160, { align: 'center' });
+  pdf.text('E-ARONCY', pageWidth / 2, 166, { align: 'center' });
+
+  // Pied de page
+  pdf.setFontSize(8);
+  pdf.setTextColor(107, 114, 128); // gray-500
+  pdf.text('Attestation générée automatiquement — E-ARONCY', pageWidth / 2, pageHeight - 12, { align: 'center' });
+
+  const fname = `attestation-${certificateNumber}.pdf`;
+  pdf.save(fname);
+}
+
 export async function generatePlanActionPDF() {
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();

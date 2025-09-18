@@ -420,6 +420,56 @@ export function verifyResetToken(token: string): boolean {
   }
 }
 
+// Générer un token de réinitialisation de mot de passe lié à un utilisateur
+export function generatePasswordResetToken(userId: string, email: string): string {
+  const hours = Number(process.env.PASSWORD_RESET_TTL_HOURS || 1);
+  const expiresInSec = Math.max(1, hours) * 60 * 60;
+  return jwt.sign(
+    { type: 'password_reset', userId, email },
+    JWT_SECRET,
+    { expiresIn: expiresInSec, issuer: 'e-aroncy', audience: 'e-aroncy-users' }
+  );
+}
+
+// Vérifier un token de réinitialisation de mot de passe
+export function verifyPasswordResetToken(token: string): { userId: string; email?: string } | null {
+  try {
+    const payload = jwt.verify(token, JWT_SECRET, {
+      issuer: 'e-aroncy',
+      audience: 'e-aroncy-users'
+    }) as any;
+    if (payload?.type !== 'password_reset' || !payload?.userId) return null;
+    return { userId: payload.userId, email: payload.email };
+  } catch (error) {
+    return null;
+  }
+}
+
+// Générer un token de vérification d'email (activation de compte)
+export function generateEmailVerificationToken(userId: string, email: string): string {
+  const hours = Number(process.env.EMAIL_VERIFICATION_TTL_HOURS || 24);
+  const expiresInSec = Math.max(1, hours) * 60 * 60;
+  return jwt.sign(
+    { type: 'email_verify', userId, email },
+    JWT_SECRET,
+    { expiresIn: expiresInSec, issuer: 'e-aroncy', audience: 'e-aroncy-users' }
+  );
+}
+
+// Vérifier un token de vérification d'email
+export function verifyEmailVerificationToken(token: string): { userId: string; email?: string } | null {
+  try {
+    const payload = jwt.verify(token, JWT_SECRET, {
+      issuer: 'e-aroncy',
+      audience: 'e-aroncy-users'
+    }) as any;
+    if (payload?.type !== 'email_verify' || !payload?.userId) return null;
+    return { userId: payload.userId, email: payload.email };
+  } catch (error) {
+    return null;
+  }
+}
+
 // ===============================
 // 2FA UTILITIES
 // ===============================

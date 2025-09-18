@@ -4,35 +4,73 @@ import { requireRole, createAuthErrorResponse } from '../../../lib/auth';
 import { z } from 'zod';
 import { Role } from '@prisma/client';
 
-// Schema de validation pour les formations
+// Schema de validation pour les formations (robuste aux valeurs vides/chaînes)
 const FormationSchema = z.object({
   title: z.string().min(3).max(200),
   description: z.string().min(10),
-  shortDescription: z.string().min(5).max(300),
-  category: z.enum(['CYBERSECURITE', 'SENSIBILISATION', 'TECHNIQUE', 'MANAGEMENT']),
-  level: z.string().transform((val) => {
-    // Si le niveau est vide, utiliser DEBUTANT par défaut
-    if (!val || val.trim() === '') {
-      return 'DEBUTANT';
-    }
-    // Vérifier que la valeur est valide
-    if (!['DEBUTANT', 'INTERMEDIAIRE', 'AVANCE'].includes(val)) {
-      throw new Error(`Niveau invalide: ${val}. Valeurs acceptées: DEBUTANT, INTERMEDIAIRE, AVANCE`);
-    }
-    return val;
-  }),
+  shortDescription: z.preprocess((v) => {
+    let s = typeof v === 'string' ? v : String(v ?? '');
+    s = s.trim();
+    if (s.length > 300) s = s.slice(0, 300);
+    return s;
+  }, z.string().min(5).max(300)),
+  // Tolère la casse et espaces
+  category: z.preprocess((v) => typeof v === 'string' ? v.trim().toUpperCase() : v,
+    z.enum(['CYBERSECURITE', 'SENSIBILISATION', 'TECHNIQUE', 'MANAGEMENT'])
+  ),
+  // Tolère vide et casse
+  level: z.preprocess((v) => {
+      if (typeof v !== 'string') return v;
+      const t = v.trim();
+      if (!t) return 'DEBUTANT';
+      return t.toUpperCase();
+    },
+    z.enum(['DEBUTANT', 'INTERMEDIAIRE', 'AVANCE']).default('DEBUTANT')
+  ),
   instructor: z.string().min(2),
-  duration: z.string(),
-  price: z.number().optional(),
-  maxEnrollments: z.number().optional(),
-  language: z.string().default('fr'),
-  tags: z.array(z.string()),
-  prerequisites: z.array(z.string()),
-  objectives: z.array(z.string()),
-  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).default('DRAFT'),
-  featured: z.boolean().default(false),
-  certificateEnabled: z.boolean().default(true),
-  allowDiscussions: z.boolean().default(true)
+  // Toujours stocké en chaîne en BDD (schéma Prisma)
+  duration: z.preprocess((v) => (v == null ? '' : String(v)), z.string().min(1)),
+  // Autoriser nombre ou chaîne numérique
+  price: z.preprocess((v) => (typeof v === 'string' ? parseFloat(v) : v), z.number().optional()).optional(),
+  maxEnrollments: z.preprocess((v) => (typeof v === 'string' ? parseInt(v as string, 10) : v), z.number().optional()).optional(),
+  language: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? 'fr' : v), z.string().default('fr')),
+  // Autoriser chaîne séparée par virgules
+  tags: z.preprocess((v) => {
+    if (Array.isArray(v)) return v;
+    if (typeof v === 'string') return v.split(',').map(s => s.trim()).filter(Boolean);
+    return [];
+  }, z.array(z.string()).default([])),
+  prerequisites: z.preprocess((v) => {
+    if (Array.isArray(v)) return v;
+    if (typeof v === 'string') return v.split(',').map(s => s.trim()).filter(Boolean);
+    return [];
+  }, z.array(z.string()).default([])),
+  objectives: z.preprocess((v) => {
+    if (Array.isArray(v)) return v;
+    if (typeof v === 'string') return v.split(',').map(s => s.trim()).filter(Boolean);
+    return [];
+  }, z.array(z.string()).default([])),
+  status: z.preprocess((v) => typeof v === 'string' ? v.trim().toUpperCase() : v,
+    z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).default('DRAFT')
+  ),
+  featured: z.preprocess((v) => typeof v === 'string' ? v === 'true' : v, z.boolean().default(false)),
+  certificateEnabled: z.preprocess((v) => typeof v === 'string' ? v === 'true' : v, z.boolean().default(true)),
+  allowDiscussions: z.preprocess((v) => typeof v === 'string' ? v === 'true' : v, z.boolean().default(true))
+})
+.extend({
+  // Champs additionnels facultatifs
+  metaTitle: z.string().max(120).optional(),
+  metaDescription: z.string().max(300).optional(),
+  featuredImage: z.string().optional(),
+  // Sections (optionnel): créées à vide si fournies
+  sections: z
+    .array(
+      z.object({
+        title: z.preprocess((v) => (typeof v === 'string' ? v.trim() : v), z.string().min(1)),
+        order: z.preprocess((v) => (typeof v === 'string' ? parseInt(v, 10) : v), z.number().int().min(0).optional())
+      })
+    )
+    .optional()
 });
 
 // GET /api/formations - Lister les formations
@@ -50,9 +88,9 @@ export async function GET(request: NextRequest) {
 
     const where: any = {};
 
-    if (category) where.category = category;
-    if (level) where.level = level;
-    if (status) where.status = status;
+    if (category) where.category = category.toUpperCase();
+    if (level) where.level = level.toUpperCase();
+    if (status) where.status = status.toUpperCase();
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
@@ -118,17 +156,34 @@ export async function POST(request: NextRequest) {
 
     // Valider les données
     const formationData = FormationSchema.parse(body);
+    const { sections: sectionsInput, ...formationCore } = formationData as any;
 
     // Créer la formation
     const formation = await prisma.formation.create({
       data: {
-        ...formationData,
-        price: formationData.price || 0,
+        ...formationCore,
+        price: formationCore.price || 0,
         instructorId: authResult.user.id,
         createdAt: new Date(),
         updatedAt: new Date()
       }
     });
+
+    // Créer les sections vides si fournies
+    if (Array.isArray(sectionsInput) && sectionsInput.length > 0) {
+      const toCreate = sectionsInput
+        .map((s, idx) => ({
+          formationId: formation.id,
+          title: s.title,
+          order: typeof s.order === 'number' ? s.order : idx,
+        }));
+      try {
+        // createMany pour efficacité; unique (formationId, title) empêche doublons
+        await prisma.section.createMany({ data: toCreate, skipDuplicates: true });
+      } catch (e) {
+        console.warn('Creation des sections: certains éléments n\'ont pas pu être créés', e);
+      }
+    }
 
     return NextResponse.json({
       message: 'Formation créée avec succès',

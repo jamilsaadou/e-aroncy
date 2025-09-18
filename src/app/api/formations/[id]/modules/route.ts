@@ -6,12 +6,28 @@ import { Role } from '@prisma/client';
 
 // Schema de validation pour les modules
 const ModuleSchema = z.object({
-  title: z.string().min(3),
-  description: z.string().min(5),
-  duration: z.number().min(1), // en minutes
-  type: z.enum(['VIDEO', 'TEXT', 'QUIZ', 'EXERCISE']),
-  content: z.string(),
-  order: z.number().default(0)
+  title: z.preprocess((v) => (typeof v === 'string' ? v.trim() : v), z.string().min(1)),
+  description: z.preprocess((v) => (typeof v === 'string' ? v.trim() : v), z.string().min(1)),
+  duration: z.preprocess((v) => (typeof v === 'string' ? parseInt(v, 10) : v), z.number().min(1)),
+  type: z.preprocess((v) => (typeof v === 'string' ? v.toUpperCase() : v), z.enum(['VIDEO', 'TEXT', 'QUIZ', 'EXERCISE'])),
+  content: z.preprocess((v) => (v == null ? '' : v), z.string()),
+  order: z.preprocess((v) => (typeof v === 'string' ? parseInt(v, 10) : v), z.number().default(0))
+}).extend({
+  sectionId: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional().nullable()),
+  section: z.preprocess((v) => (typeof v === 'string' ? v.trim() : v), z.string().optional().nullable()), // nom de section (créée si absente)
+  prerequisites: z
+    .array(z.object({
+      requiresModuleId: z.string().min(1),
+      requirement: z.enum(['COMPLETED', 'PASSED', 'MIN_SCORE']),
+      minScore: z.number().min(0).max(100).optional(),
+    }))
+    .optional(),
+  releasePolicy: z
+    .object({
+      releaseAt: z.string().datetime().optional(),
+      delayMinutes: z.number().int().min(0).optional(),
+    })
+    .optional(),
 });
 
 // GET /api/formations/[id]/modules - Lister les modules d'une formation
@@ -28,9 +44,13 @@ export async function GET(
         quiz: {
           include: { questions: true }
         },
-        resources: true
+        resources: true,
+        section: true
       },
-      orderBy: { order: 'asc' }
+      orderBy: [
+        { section: { order: 'asc' } },
+        { order: 'asc' }
+      ]
     });
 
     return NextResponse.json(modules);
@@ -62,30 +82,73 @@ export async function POST(
     // Valider les données
     const moduleData = ModuleSchema.parse(body);
 
-    // Vérifier que la formation existe et appartient à l'utilisateur
-    const formation = await prisma.formation.findFirst({
-      where: { 
-        id,
-        instructorId: authResult.user.id 
-      }
-    });
-
+    // Vérifier que la formation existe et permissions
+    const formation = await prisma.formation.findUnique({ where: { id } });
     if (!formation) {
       return NextResponse.json(
-        { error: 'Formation non trouvée ou non autorisée' },
+        { error: 'Formation non trouvée' },
         { status: 404 }
       );
+    }
+    if ((authResult.user.role as Role) === Role.INSTRUCTOR && formation.instructorId !== authResult.user.id) {
+      return NextResponse.json(
+        { error: 'Non autorisé' },
+        { status: 403 }
+      );
+    }
+
+    // Section: si sectionId fourni on l'utilise, sinon on upsert par nom
+    let sectionId: string | undefined = undefined;
+    if (moduleData.sectionId) {
+      sectionId = moduleData.sectionId || undefined;
+    } else if (moduleData.section && moduleData.section.trim()) {
+      const sec = await prisma.section.upsert({
+        where: { formationId_title: { formationId: id, title: moduleData.section.trim() } },
+        update: {},
+        create: { formationId: id, title: moduleData.section.trim(), order: 0 }
+      });
+      sectionId = sec.id;
     }
 
     // Créer le module
     const newModule = await prisma.module.create({
       data: {
-        ...moduleData,
+        title: moduleData.title,
+        description: moduleData.description,
+        duration: moduleData.duration,
+        type: moduleData.type,
+        content: moduleData.content,
+        order: moduleData.order || 0,
         formationId: id,
+        sectionId,
         createdAt: new Date(),
         updatedAt: new Date()
       }
     });
+
+    // Créer les prérequis si fournis
+    if (Array.isArray(moduleData.prerequisites) && moduleData.prerequisites.length > 0) {
+      await prisma.prerequisite.createMany({
+        data: moduleData.prerequisites.map((p) => ({
+          formationId: id,
+          moduleId: newModule.id,
+          requiresModuleId: p.requiresModuleId,
+          requirement: p.requirement,
+          minScore: p.minScore,
+        }))
+      });
+    }
+
+    // Créer la release policy si fournie
+    if (moduleData.releasePolicy) {
+      const releaseAt = moduleData.releasePolicy.releaseAt ? new Date(moduleData.releasePolicy.releaseAt) : undefined;
+      const delayMinutes = moduleData.releasePolicy.delayMinutes;
+      await prisma.releasePolicy.upsert({
+        where: { moduleId: newModule.id },
+        update: { releaseAt, delayMinutes },
+        create: { moduleId: newModule.id, releaseAt, delayMinutes }
+      });
+    }
 
     return NextResponse.json({
       message: 'Module ajouté avec succès',

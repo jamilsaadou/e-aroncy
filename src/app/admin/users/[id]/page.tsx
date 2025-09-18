@@ -27,7 +27,9 @@ import {
   EyeOff,
   Monitor,
   Smartphone,
-  Globe
+  Globe,
+  Save,
+  X
 } from "lucide-react";
 
 interface UserDetails {
@@ -83,6 +85,20 @@ export default function UserDetailsPage() {
   const [error, setError] = useState('');
   const [showSessions, setShowSessions] = useState(false);
   const [showActivities, setShowActivities] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    organization: '',
+    role: 'STUDENT',
+    status: 'ACTIVE',
+    emailVerified: false,
+    twoFactorEnabled: false,
+    unlockAccount: false,
+  });
+  const [pwdResetLoading, setPwdResetLoading] = useState(false);
+  const [pwdSet, setPwdSet] = useState({ newPassword: '', confirm: '', notify: false });
 
   const userId = params.id as string;
 
@@ -120,6 +136,21 @@ export default function UserDetailsPage() {
       loadUserDetails();
     }
   }, [hasRole, userId]);
+
+  useEffect(() => {
+    if (user) {
+      setForm({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        organization: user.organization || '',
+        role: user.role || 'STUDENT',
+        status: user.status || 'ACTIVE',
+        emailVerified: !!user.emailVerified,
+        twoFactorEnabled: !!user.twoFactorEnabled,
+        unlockAccount: false,
+      });
+    }
+  }, [user]);
 
   if (!hasRole) {
     return null;
@@ -270,11 +301,82 @@ export default function UserDetailsPage() {
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
-                    <Edit className="h-4 w-4" />
-                    <span>Modifier</span>
-                  </button>
-                  <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2">
+                  {!editing ? (
+                    <button
+                      onClick={() => setEditing(true)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                    >
+                      <Edit className="h-4 w-4" />
+                      <span>Modifier</span>
+                    </button>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={async () => {
+                          try {
+                            setSaving(true);
+                            setError('');
+                            const res = await fetch(`/api/admin/users/${userId}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              credentials: 'include',
+                              body: JSON.stringify({
+                                ...form,
+                                ...(pwdSet.newPassword && pwdSet.newPassword === pwdSet.confirm
+                                  ? { resetPassword: { newPassword: pwdSet.newPassword, notify: pwdSet.notify } }
+                                  : {}),
+                              }),
+                            });
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error || 'Échec de la mise à jour');
+                            await loadUserDetails();
+                            setEditing(false);
+                            setPwdSet({ newPassword: '', confirm: '', notify: false });
+                          } catch (e: any) {
+                            setError(e.message || 'Erreur lors de la mise à jour');
+                          } finally {
+                            setSaving(false);
+                          }
+                        }}
+                        disabled={saving}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
+                      >
+                        <Save className="h-4 w-4" />
+                        <span>{saving ? 'Enregistrement...' : 'Enregistrer'}</span>
+                      </button>
+                      <button
+                        onClick={() => { setEditing(false); setForm({
+                          firstName: user.firstName || '',
+                          lastName: user.lastName || '',
+                          organization: user.organization || '',
+                          role: user.role || 'STUDENT',
+                          status: user.status || 'ACTIVE',
+                          emailVerified: !!user.emailVerified,
+                          twoFactorEnabled: !!user.twoFactorEnabled,
+                          unlockAccount: false,
+                        }); }}
+                        className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors flex items-center space-x-2"
+                      >
+                        <X className="h-4 w-4" />
+                        <span>Annuler</span>
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    onClick={async () => {
+                      const ok = confirm(`Supprimer l'utilisateur ${user.email} ? Cette action est irréversible.`);
+                      if (!ok) return;
+                      try {
+                        const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE', credentials: 'include' });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error || 'Échec de la suppression');
+                        router.replace('/admin/users');
+                      } catch (e: any) {
+                        alert(e.message || 'Erreur lors de la suppression');
+                      }
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+                  >
                     <Trash2 className="h-4 w-4" />
                     <span>Supprimer</span>
                   </button>
@@ -314,21 +416,47 @@ export default function UserDetailsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 mb-3">Informations personnelles</h3>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Prénom</label>
+                        <input
+                          disabled={!editing}
+                          value={form.firstName}
+                          onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                          className={`w-full px-3 py-2 border rounded-lg ${editing ? 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-50 border-gray-200'}`}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Nom</label>
+                        <input
+                          disabled={!editing}
+                          value={form.lastName}
+                          onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                          className={`w-full px-3 py-2 border rounded-lg ${editing ? 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-50 border-gray-200'}`}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Organisation</label>
+                        <input
+                          disabled={!editing}
+                          value={form.organization}
+                          onChange={(e) => setForm({ ...form, organization: e.target.value })}
+                          className={`w-full px-3 py-2 border rounded-lg ${editing ? 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-50 border-gray-200'}`}
+                        />
+                      </div>
                       <div className="flex items-center space-x-3">
                         <Mail className="h-4 w-4 text-gray-400" />
                         <div>
                           <p className="text-sm text-gray-900">{user.email}</p>
-                          <p className="text-xs text-gray-500">
-                            {user.emailVerified ? 'Email vérifié' : 'Email non vérifié'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Building className="h-4 w-4 text-gray-400" />
-                        <div>
-                          <p className="text-sm text-gray-900">{user.organization || 'Non spécifiée'}</p>
-                          <p className="text-xs text-gray-500">Organisation</p>
+                          <label className="text-xs text-gray-500 flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              disabled={!editing}
+                              checked={form.emailVerified}
+                              onChange={(e) => setForm({ ...form, emailVerified: e.target.checked })}
+                            />
+                            <span>{form.emailVerified ? 'Email vérifié' : 'Email non vérifié'}</span>
+                          </label>
                         </div>
                       </div>
                       <div className="flex items-center space-x-3">
@@ -343,28 +471,122 @@ export default function UserDetailsPage() {
 
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 mb-3">Sécurité</h3>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Rôle</label>
+                        <select
+                          disabled={!editing}
+                          value={form.role}
+                          onChange={(e) => setForm({ ...form, role: e.target.value })}
+                          className={`w-full px-3 py-2 border rounded-lg ${editing ? 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-50 border-gray-200'}`}
+                        >
+                          <option value="ADMIN">Admin</option>
+                          <option value="INSTRUCTOR">Instructeur</option>
+                          <option value="STUDENT">Étudiant</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Statut</label>
+                        <select
+                          disabled={!editing}
+                          value={form.status}
+                          onChange={(e) => setForm({ ...form, status: e.target.value })}
+                          className={`w-full px-3 py-2 border rounded-lg ${editing ? 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-50 border-gray-200'}`}
+                        >
+                          <option value="ACTIVE">Actif</option>
+                          <option value="PENDING">En attente</option>
+                          <option value="SUSPENDED">Suspendu</option>
+                          <option value="INACTIVE">Inactif</option>
+                        </select>
+                      </div>
+                      {/* Reset password controls */}
+                      <div className="border-t pt-4 mt-4">
+                        <h4 className="text-sm font-semibold text-gray-800 mb-3">Réinitialiser le mot de passe</h4>
+                        <div className="flex items-center gap-2 mb-3">
+                          <button
+                            disabled={pwdResetLoading}
+                            onClick={async () => {
+                              if (!confirm("Envoyer un lien sécurisé de réinitialisation au propriétaire du compte ?")) return;
+                              try {
+                                setPwdResetLoading(true);
+                                const res = await fetch(`/api/admin/users/${userId}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  credentials: 'include',
+                                  body: JSON.stringify({ resetPassword: { generateLink: true } }),
+                                });
+                                const data = await res.json();
+                                if (!res.ok) throw new Error(data.error || 'Échec de l\'envoi');
+                                alert('Lien de réinitialisation envoyé par email.');
+                              } catch (e: any) {
+                                alert(e.message || 'Erreur lors de l\'envoi du lien');
+                              } finally {
+                                setPwdResetLoading(false);
+                              }
+                            }}
+                            className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                          >
+                            {pwdResetLoading ? 'Envoi...' : 'Envoyer un lien de réinitialisation'}
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">Nouveau mot de passe</label>
+                            <input
+                              type="password"
+                              disabled={!editing}
+                              value={pwdSet.newPassword}
+                              onChange={(e) => setPwdSet({ ...pwdSet, newPassword: e.target.value })}
+                              className={`w-full px-3 py-2 border rounded-lg ${editing ? 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-50 border-gray-200'}`}
+                              placeholder="Saisir un nouveau mot de passe"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">Confirmer</label>
+                            <input
+                              type="password"
+                              disabled={!editing}
+                              value={pwdSet.confirm}
+                              onChange={(e) => setPwdSet({ ...pwdSet, confirm: e.target.value })}
+                              className={`w-full px-3 py-2 border rounded-lg ${editing ? 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-50 border-gray-200'}`}
+                              placeholder="Confirmer le mot de passe"
+                            />
+                          </div>
+                        </div>
+                        <label className="mt-2 inline-flex items-center gap-2 text-xs text-gray-700">
+                          <input
+                            type="checkbox"
+                            disabled={!editing}
+                            checked={pwdSet.notify}
+                            onChange={(e) => setPwdSet({ ...pwdSet, notify: e.target.checked })}
+                          />
+                          Envoyer le nouveau mot de passe par email
+                        </label>
+                      </div>
                       <div className="flex items-center space-x-3">
                         <Shield className="h-4 w-4 text-gray-400" />
-                        <div>
-                          <p className="text-sm text-gray-900">
-                            {user.twoFactorEnabled ? 'Activée' : 'Désactivée'}
-                          </p>
-                          <p className="text-xs text-gray-500">Authentification 2FA</p>
-                        </div>
+                        <label className="text-sm text-gray-900 flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            disabled={!editing}
+                            checked={form.twoFactorEnabled}
+                            onChange={(e) => setForm({ ...form, twoFactorEnabled: e.target.checked })}
+                          />
+                          <span>2FA activée</span>
+                        </label>
                       </div>
                       <div className="flex items-center space-x-3">
                         <Lock className="h-4 w-4 text-gray-400" />
-                        <div>
-                          <p className="text-sm text-gray-900">
-                            {user.lockUntil && new Date(user.lockUntil) > new Date() 
-                              ? 'Compte verrouillé' 
-                              : 'Compte déverrouillé'}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {user.failedLoginAttempts} tentative{user.failedLoginAttempts > 1 ? 's' : ''} échouée{user.failedLoginAttempts > 1 ? 's' : ''}
-                          </p>
-                        </div>
+                        <label className="text-sm text-gray-900 flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            disabled={!editing}
+                            checked={form.unlockAccount}
+                            onChange={(e) => setForm({ ...form, unlockAccount: e.target.checked })}
+                          />
+                          <span>Déverrouiller le compte</span>
+                        </label>
+                        <span className="text-xs text-gray-500">({user.failedLoginAttempts} tentatives, {user.lockUntil && new Date(user.lockUntil) > new Date() ? 'verrouillé' : 'déverrouillé'})</span>
                       </div>
                       <div className="flex items-center space-x-3">
                         <Activity className="h-4 w-4 text-gray-400" />

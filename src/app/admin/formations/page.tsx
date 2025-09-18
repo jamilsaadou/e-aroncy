@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
 import { 
   GraduationCap, 
@@ -19,7 +20,9 @@ import {
   ChevronDown,
   MoreHorizontal,
   Star,
-  Play
+  Play,
+  AlertCircle,
+  Loader
 } from "lucide-react";
 
 interface Formation {
@@ -40,110 +43,74 @@ interface Formation {
 }
 
 export default function FormationsPage() {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [formations, setFormations] = useState<Formation[]>([]);
 
-  // Données d'exemple
-  const formations: Formation[] = [
-    {
-      id: '1',
-      title: 'Fondamentaux de la Cybersécurité',
-      category: 'cybersecurite',
-      instructor: 'Dr. Marie Dubois',
-      duration: '8',
-      level: 'debutant',
-      status: 'published',
-      enrollments: 245,
-      rating: 4.8,
-      createdDate: '2024-01-15',
-      lastUpdated: '2024-01-20',
-      description: 'Une formation complète sur les bases de la cybersécurité pour les débutants.',
-      modules: 6,
-      featured: true
-    },
-    {
-      id: '2',
-      title: 'Sécurisation des Réseaux d\'Entreprise',
-      category: 'technique',
-      instructor: 'Jean Martin',
-      duration: '12',
-      level: 'intermediaire',
-      status: 'published',
-      enrollments: 156,
-      rating: 4.6,
-      createdDate: '2024-01-10',
-      lastUpdated: '2024-01-18',
-      description: 'Apprenez à sécuriser les infrastructures réseau en entreprise.',
-      modules: 8,
-      featured: false
-    },
-    {
-      id: '3',
-      title: 'Sensibilisation aux Menaces Numériques',
-      category: 'sensibilisation',
-      instructor: 'Sophie Laurent',
-      duration: '4',
-      level: 'debutant',
-      status: 'published',
-      enrollments: 389,
-      rating: 4.9,
-      createdDate: '2024-01-08',
-      lastUpdated: '2024-01-16',
-      description: 'Formation de sensibilisation pour tous les employés sur les menaces courantes.',
-      modules: 4,
-      featured: true
-    },
-    {
-      id: '4',
-      title: 'Gestion des Incidents de Sécurité',
-      category: 'management',
-      instructor: 'Pierre Durand',
-      duration: '16',
-      level: 'avance',
-      status: 'draft',
-      enrollments: 0,
-      rating: 0,
-      createdDate: '2024-01-20',
-      lastUpdated: '2024-01-22',
-      description: 'Formation avancée sur la gestion et la réponse aux incidents de sécurité.',
-      modules: 10,
-      featured: false
-    },
-    {
-      id: '5',
-      title: 'Audit de Sécurité et Conformité',
-      category: 'technique',
-      instructor: 'Anne Moreau',
-      duration: '20',
-      level: 'avance',
-      status: 'published',
-      enrollments: 78,
-      rating: 4.7,
-      createdDate: '2024-01-05',
-      lastUpdated: '2024-01-15',
-      description: 'Formation complète sur l\'audit de sécurité et la mise en conformité.',
-      modules: 12,
-      featured: false
-    },
-    {
-      id: '6',
-      title: 'Protection des Données Personnelles (RGPD)',
-      category: 'management',
-      instructor: 'Amadou Diallo',
-      duration: '6',
-      level: 'intermediaire',
-      status: 'archived',
-      enrollments: 234,
-      rating: 4.5,
-      createdDate: '2023-12-20',
-      lastUpdated: '2024-01-10',
-      description: 'Formation sur la protection des données et la conformité RGPD.',
-      modules: 5,
-      featured: false
+  const mapCategory = (c: string): Formation['category'] => {
+    switch (c) {
+      case 'CYBERSECURITE': return 'cybersecurite';
+      case 'SENSIBILISATION': return 'sensibilisation';
+      case 'TECHNIQUE': return 'technique';
+      case 'MANAGEMENT': return 'management';
+      default: return 'cybersecurite';
     }
-  ];
+  };
+  const mapLevel = (l: string): Formation['level'] => {
+    switch (l) {
+      case 'DEBUTANT': return 'debutant';
+      case 'INTERMEDIAIRE': return 'intermediaire';
+      case 'AVANCE': return 'avance';
+      default: return 'debutant';
+    }
+  };
+  const mapStatus = (s: string): Formation['status'] => {
+    switch (s) {
+      case 'PUBLISHED': return 'published';
+      case 'DRAFT': return 'draft';
+      case 'ARCHIVED': return 'archived';
+      default: return 'draft';
+    }
+  };
+
+  const loadFormations = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const res = await fetch('/api/formations?limit=100', { credentials: 'include' });
+      if (!res.ok) throw new Error('Erreur lors du chargement des formations');
+      const data = await res.json();
+      const items = (data.formations || []).map((f: any) => ({
+        id: f.id,
+        title: f.title,
+        category: mapCategory(f.category),
+        instructor: f.instructor,
+        duration: f.duration,
+        level: mapLevel(f.level),
+        status: mapStatus(f.status),
+        enrollments: f._count?.enrollments || 0,
+        rating: 0,
+        createdDate: f.createdAt || '',
+        lastUpdated: f.updatedAt || '',
+        description: f.shortDescription || f.description || '',
+        modules: (f.modules || []).length,
+        featured: !!f.featured
+      })) as Formation[];
+      setFormations(items);
+    } catch (e: any) {
+      console.error(e);
+      setError(e.message || 'Erreur de chargement');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadFormations(); }, []);
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
@@ -241,6 +208,17 @@ export default function FormationsPage() {
 
         {/* Content Area */}
         <div className="flex-1 p-6 overflow-auto">
+          {loading && (
+            <div className="bg-white rounded-lg shadow p-12 text-center mb-6">
+              <Loader className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-3" />
+              <div className="text-gray-500">Chargement des formations…</div>
+            </div>
+          )}
+          {error && (
+            <div className="bg-white rounded-lg shadow p-4 mb-6 text-red-600 flex items-center">
+              <AlertCircle className="h-5 w-5 mr-2" /> {error}
+            </div>
+          )}
           {/* Filters */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -441,16 +419,37 @@ export default function FormationsPage() {
                         </td>
                         <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-1">
-                            <button className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded">
+                            <button
+                              title="Consulter le cours"
+                              className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded"
+                              onClick={() => router.push(`/formations/${formation.id}`)}
+                            >
                               <Eye className="h-4 w-4" />
                             </button>
-                            <button className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded">
+                            <Link
+                              href={`/admin/formations/${formation.id}`}
+                              className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded"
+                              title="Éditer la formation"
+                            >
                               <Edit className="h-4 w-4" />
-                            </button>
-                            <button className="p-1 text-green-600 hover:text-green-900 hover:bg-green-50 rounded">
+                            </Link>
+                            <button className="p-1 text-green-600 hover:text-green-900 hover:bg-green-50 rounded" title="Aperçu">
                               <Play className="h-4 w-4" />
                             </button>
-                            <button className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded">
+                            <button
+                              title="Supprimer"
+                              className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded"
+                              onClick={async () => {
+                                if (!confirm('Supprimer cette formation ?')) return;
+                                try {
+                                  const res = await fetch(`/api/formations/${formation.id}`, { method: 'DELETE', credentials: 'include' });
+                                  if (!res.ok) throw new Error('Suppression impossible');
+                                  setFormations(prev => prev.filter(f => f.id !== formation.id));
+                                } catch (e: any) {
+                                  alert(e.message || 'Erreur lors de la suppression');
+                                }
+                              }}
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -528,16 +527,32 @@ export default function FormationsPage() {
                       </div>
                       
                       <div className="flex items-center space-x-1 ml-4">
-                        <button className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded">
+                        <button
+                          title="Consulter le cours"
+                          className="p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded"
+                          onClick={() => router.push(`/formations/${formation.id}`)}
+                        >
                           <Eye className="h-4 w-4" />
                         </button>
-                        <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded">
+                        <Link href={`/admin/formations/${formation.id}`} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded" title="Éditer la formation">
                           <Edit className="h-4 w-4" />
-                        </button>
+                        </Link>
                         <button className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded">
                           <Play className="h-4 w-4" />
                         </button>
-                        <button className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded">
+                        <button
+                          className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded"
+                          onClick={async () => {
+                            if (!confirm('Supprimer cette formation ?')) return;
+                            try {
+                              const res = await fetch(`/api/formations/${formation.id}`, { method: 'DELETE', credentials: 'include' });
+                              if (!res.ok) throw new Error('Suppression impossible');
+                              setFormations(prev => prev.filter(f => f.id !== formation.id));
+                            } catch (e: any) {
+                              alert(e.message || 'Erreur lors de la suppression');
+                            }
+                          }}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>

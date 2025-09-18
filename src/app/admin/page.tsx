@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import AdminSidebar from "@/components/AdminSidebar";
 import { 
@@ -80,104 +80,84 @@ interface RecentActivity {
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  // Données dynamiques
+  const [stats, setStats] = useState<StatCard[]>([]);
+  const [userActivityData, setUserActivityData] = useState<any[]>([]);
+  const [moduleCompletionData, setModuleCompletionData] = useState<any[]>([]);
+  const [deviceUsageData, setDeviceUsageData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Données pour les graphiques
-  const userActivityData = [
-    { name: 'Lun', utilisateurs: 2400, sessions: 1800, nouveaux: 120 },
-    { name: 'Mar', utilisateurs: 2600, sessions: 2100, nouveaux: 150 },
-    { name: 'Mer', utilisateurs: 2800, sessions: 2300, nouveaux: 180 },
-    { name: 'Jeu', utilisateurs: 2950, sessions: 2500, nouveaux: 160 },
-    { name: 'Ven', utilisateurs: 3100, sessions: 2800, nouveaux: 200 },
-    { name: 'Sam', utilisateurs: 2800, sessions: 2200, nouveaux: 140 },
-    { name: 'Dim', utilisateurs: 2600, sessions: 2000, nouveaux: 110 }
-  ];
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [recentLoading, setRecentLoading] = useState(true);
 
-  const moduleCompletionData = [
-    { name: 'Cybersécurité', completions: 1247, taux: 87 },
-    { name: 'Phishing', completions: 892, taux: 92 },
-    { name: 'Mots de passe', completions: 756, taux: 89 },
-    { name: 'Mobile', completions: 634, taux: 85 },
-    { name: 'Réseaux sociaux', completions: 523, taux: 83 }
-  ];
+  // Charger les statistiques admin
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        setLoading(true);
+        setError('');
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        if (!token) throw new Error("Token d'authentification manquant");
+        const res = await fetch('/api/admin/statistics?period=30d', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erreur chargement statistiques admin');
 
-  const deviceUsageData = [
-    { name: 'Mobile', value: 60, color: '#3B82F6' },
-    { name: 'Desktop', value: 35, color: '#10B981' },
-    { name: 'Tablette', value: 5, color: '#F59E0B' }
-  ];
+        const iconFor = (title: string) => {
+          const t = title.toLowerCase();
+          if (t.includes('inscription')) return <UserCheck className="h-6 w-6" />;
+          if (t.includes('diagnostic')) return <Activity className="h-6 w-6" />;
+          if (t.includes('actif')) return <Users className="h-6 w-6" />;
+          if (t.includes('taux')) return <Award className="h-6 w-6" />;
+          return <BarChart3 className="h-6 w-6" />;
+        };
 
-  const stats: StatCard[] = [
-    {
-      title: "Utilisateurs Actifs",
-      value: "3,100",
-      change: "+12.5%",
-      changeType: 'positive',
-      icon: <Users className="h-6 w-6" />,
-      description: "Ce mois"
-    },
-    {
-      title: "Diagnostics Complétés",
-      value: "2,020",
-      change: "+15.8%",
-      changeType: 'positive',
-      icon: <Activity className="h-6 w-6" />,
-      description: "Ce mois"
-    },
-    {
-      title: "Nouveaux Inscrits",
-      value: "420",
-      change: "+23.4%",
-      changeType: 'positive',
-      icon: <UserCheck className="h-6 w-6" />,
-      description: "Ce mois"
-    },
-    {
-      title: "Incidents Sécurité",
-      value: "23",
-      change: "-15.3%",
-      changeType: 'positive',
-      icon: <Shield className="h-6 w-6" />,
-      description: "Bloqués"
+        setStats((data.mainStats || []).map((s: any) => ({
+          title: s.title,
+          value: String(s.value),
+          change: s.change || '0%',
+          changeType: s.changeType || 'neutral',
+          description: s.description,
+          icon: iconFor(s.title)
+        })));
+        setUserActivityData(data.userGrowthData || []);
+        setModuleCompletionData(data.formationCompletionData || []);
+        setDeviceUsageData(data.deviceData || []);
+      } catch (e: any) {
+        setError(e.message || 'Erreur de chargement');
+      } finally {
+        setLoading(false);
+      }
     }
-  ];
+    loadStats();
+  }, []);
 
-  const recentActivities: RecentActivity[] = [
-    {
-      id: '1',
-      type: 'user',
-      message: '420 nouveaux utilisateurs inscrits ce mois',
-      timestamp: 'Aujourd\'hui',
-      status: 'success'
-    },
-    {
-      id: '2',
-      type: 'content',
-      message: 'Module "Sécurité Avancée" publié',
-      timestamp: 'Il y a 2 heures',
-      status: 'info'
-    },
-    {
-      id: '3',
-      type: 'security',
-      message: '23 tentatives de connexion bloquées',
-      timestamp: 'Il y a 4 heures',
-      status: 'warning'
-    },
-    {
-      id: '4',
-      type: 'system',
-      message: '2000e diagnostic complété',
-      timestamp: 'Hier',
-      status: 'success'
-    },
-    {
-      id: '5',
-      type: 'user',
-      message: 'Certificat généré pour jean.martin@company.com',
-      timestamp: 'Il y a 2 heures',
-      status: 'success'
+  // Charger activités récentes (5 dernières)
+  useEffect(() => {
+    async function loadRecent() {
+      try {
+        setRecentLoading(true);
+        const res = await fetch('/api/admin/logs?limit=5', { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erreur chargement activités');
+        const items: RecentActivity[] = (data.logs || []).slice(0, 5).map((l: any, i: number) => ({
+          id: String(i + 1),
+          type: l.type || 'system',
+          message: l.message || 'Activité',
+          timestamp: new Date(l.timestamp).toLocaleString('fr-FR'),
+          status: l.level === 'error' ? 'error' : (l.level === 'warn' ? 'warning' : 'success')
+        }));
+        setRecentActivities(items);
+      } catch {
+        // silencieux
+      } finally {
+        setRecentLoading(false);
+      }
     }
-  ];
+    loadRecent();
+  }, []);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -270,30 +250,37 @@ export default function AdminDashboard() {
         <div className="flex-1 p-4 sm:p-6 overflow-auto">
           <div className="space-y-6 sm:space-y-8">
             {/* Stats Grid */}
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">{error}</div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {stats.map((stat, index) => (
+              {(loading ? [1,2,3,4] : stats).map((stat: any, index: number) => (
                 <div key={index} className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
                   <div className="flex items-center justify-between mb-4">
                     <div className="p-3 bg-blue-50 rounded-full">
-                      {stat.icon}
+                      {loading ? <div className="w-6 h-6 bg-blue-200 rounded" /> : stat.icon}
                     </div>
-                    {getChangeIcon(stat.changeType)}
+                    {!loading && getChangeIcon(stat.changeType)}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                    {stat.description && (
+                    <p className="text-sm font-medium text-gray-600">{loading ? 'Chargement...' : stat.title}</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{loading ? '—' : stat.value}</p>
+                    {!loading && stat.description && (
                       <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
                     )}
                   </div>
                   <div className="mt-4 flex items-center">
-                    <span className={`text-sm font-medium ${
-                      stat.changeType === 'positive' ? 'text-green-600' : 
-                      stat.changeType === 'negative' ? 'text-red-600' : 'text-gray-600'
-                    }`}>
-                      {stat.change}
-                    </span>
-                    <span className="text-sm text-gray-500 ml-1">vs mois dernier</span>
+                    {!loading && (
+                      <>
+                        <span className={`text-sm font-medium ${
+                          stat.changeType === 'positive' ? 'text-green-600' : 
+                          stat.changeType === 'negative' ? 'text-red-600' : 'text-gray-600'
+                        }`}>
+                          {stat.change}
+                        </span>
+                        <span className="text-sm text-gray-500 ml-1">vs période précédente</span>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -324,16 +311,16 @@ export default function AdminDashboard() {
                       stroke="#3B82F6" 
                       fill="#3B82F6" 
                       fillOpacity={0.6}
-                      name="Utilisateurs actifs"
+                      name="Utilisateurs"
                     />
                     <Area 
                       type="monotone" 
-                      dataKey="sessions" 
+                      dataKey="nouveaux" 
                       stackId="2"
                       stroke="#10B981" 
                       fill="#10B981" 
                       fillOpacity={0.6}
-                      name="Sessions"
+                      name="Nouveaux"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -348,7 +335,7 @@ export default function AdminDashboard() {
                   </Link>
                 </div>
                 <div className="space-y-3 sm:space-y-4">
-                  {recentActivities.map((activity) => (
+                  {(recentLoading ? [] : recentActivities).map((activity) => (
                     <div key={activity.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                       <div className="flex-shrink-0 mt-1">
                         {getStatusIcon(activity.status)}
@@ -359,6 +346,9 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   ))}
+                  {recentLoading && (
+                    <div className="text-sm text-gray-500">Chargement des activités...</div>
+                  )}
                 </div>
               </div>
             </div>

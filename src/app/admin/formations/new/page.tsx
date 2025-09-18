@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import AdminSidebar from "@/components/AdminSidebar";
 import { 
@@ -47,6 +47,8 @@ interface Module {
   type: 'video' | 'text' | 'quiz' | 'exercise';
   content: string;
   resources: Resource[];
+  // Liaison locale à une section (côté UI)
+  sectionId?: string | null;
   quiz?: {
     questions: QuizQuestion[];
     passingScore: number;
@@ -89,11 +91,24 @@ export default function NewFormation() {
   });
 
   const [modules, setModules] = useState<Module[]>([]);
+  const [sections, setSections] = useState<{ id: string; title: string; order: number }[]>([]);
+  const [newSectionTitle, setNewSectionTitle] = useState('');
   const [newTag, setNewTag] = useState('');
   const [newPrerequisite, setNewPrerequisite] = useState('');
   const [newObjective, setNewObjective] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
+  // Filtre d'affichage dans le bloc Modules: 'all' | 'none' | sectionId
+  const [modulesSectionFilter, setModulesSectionFilter] = useState<string>('all');
+  const modulesBlockRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToModules = () => {
+    try {
+      modulesBlockRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch {
+      // ignore scroll errors in non-DOM environments
+    }
+  };
 
   const categories = [
     { value: 'CYBERSECURITE', label: 'Cybersécurité', description: 'Formations sur la sécurité informatique et la protection des données' },
@@ -167,18 +182,40 @@ export default function NewFormation() {
     }));
   };
 
-  const addModule = () => {
+  const addModule = (sectionId?: string) => {
     const newModule: Module = {
       id: Date.now().toString(),
       title: '',
       description: '',
-      duration: 0,
+      // Valeur par défaut à 60 pour éviter les erreurs de validation côté API
+      duration: 60,
       type: 'video',
       content: '',
-      resources: []
+      resources: [],
+      sectionId
     };
     setModules(prev => [...prev, newModule]);
     setExpandedModule(newModule.id);
+    // Focus l'affichage sur la section concernée
+    setModulesSectionFilter(sectionId || (sections.length ? (modulesSectionFilter === 'none' ? 'none' : 'all') : 'all'));
+    scrollToModules();
+  };
+
+  const addModuleForSection = (sectionId: string) => {
+    const newModule: Module = {
+      id: Date.now().toString(),
+      title: '',
+      description: '',
+      duration: 60,
+      type: 'video',
+      content: '',
+      resources: [],
+      sectionId
+    };
+    setModules(prev => [...prev, newModule]);
+    setExpandedModule(newModule.id);
+    setModulesSectionFilter(sectionId);
+    scrollToModules();
   };
 
   const updateModule = (moduleId: string, updates: Partial<Module>) => {
@@ -300,6 +337,68 @@ export default function NewFormation() {
     }));
   };
 
+  // Sections functions
+  const addSection = () => {
+    const title = newSectionTitle.trim();
+    if (!title) return;
+    if (sections.some(s => s.title.toLowerCase() === title.toLowerCase())) {
+      alert('Une section avec ce titre existe déjà');
+      return;
+    }
+    const newSec = { id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`, title, order: sections.length };
+    setSections(prev => [...prev, newSec]);
+    setNewSectionTitle('');
+    // Après création, filtrer sur cette section et faire défiler vers Modules
+    setModulesSectionFilter(newSec.id);
+    scrollToModules();
+  };
+
+  const removeSection = (id: string) => {
+    const sec = sections.find(s => s.id === id);
+    setSections(prev => prev.filter(s => s.id !== id).map((s, idx) => ({ ...s, order: idx })));
+    // Détacher les modules référencés
+    setModules(prev => prev.map(m => (m.sectionId === id ? { ...m, sectionId: undefined } : m)));
+  };
+
+  const moveSection = (id: string, direction: 'up' | 'down') => {
+    const idx = sections.findIndex(s => s.id === id);
+    if (idx === -1) return;
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= sections.length) return;
+    const copy = [...sections];
+    const [a, b] = [copy[idx], copy[targetIdx]];
+    copy[idx] = { ...b, order: idx };
+    copy[targetIdx] = { ...a, order: targetIdx };
+    setSections(copy);
+  };
+
+  const renameSection = (id: string, title: string) => {
+    setSections(prev => prev.map(s => (s.id === id ? { ...s, title } : s)));
+  };
+
+  // Helper: transforme un lien YouTube en URL d'intégration
+  const toYouTubeEmbed = (url: string): string => {
+    try {
+      if (!url) return '';
+      const u = new URL(url);
+      let id = '';
+      if (u.hostname.includes('youtu.be')) {
+        id = u.pathname.replace('/', '');
+      } else if (u.hostname.includes('youtube.com')) {
+        if (u.pathname.startsWith('/watch')) {
+          id = u.searchParams.get('v') || '';
+        } else if (u.pathname.startsWith('/embed/')) {
+          id = u.pathname.split('/')[2] || '';
+        } else if (u.pathname.startsWith('/shorts/')) {
+          id = u.pathname.split('/')[2] || '';
+        }
+      }
+      return id ? `https://www.youtube.com/embed/${id}` : '';
+    } catch {
+      return '';
+    }
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -320,7 +419,64 @@ export default function NewFormation() {
       return;
     }
 
+    if (!formData.category) {
+      alert('Veuillez sélectionner une catégorie');
+      return;
+    }
+
+    if (!formData.shortDescription) {
+      alert('Veuillez renseigner la description courte');
+      return;
+    }
+
+    if (!formData.duration || String(formData.duration).trim() === '') {
+      alert('Veuillez renseigner la durée estimée');
+      return;
+    }
+
+    // Validation des modules avant envoi
+    const moduleIssues = modules.map((m, idx) => {
+      const problems: string[] = [];
+      if (!m.title || !m.title.trim()) problems.push('titre');
+      if (!m.description || !m.description.trim()) problems.push('description');
+      if (!m.duration || m.duration < 1) problems.push('durée');
+      return { id: m.id, index: idx, problems };
+    }).filter(x => x.problems.length > 0);
+
+    if (moduleIssues.length > 0) {
+      const first = moduleIssues[0];
+      setExpandedModule(first.id);
+      const firstModule = modules.find(m => m.id === first.id);
+      if (firstModule?.sectionId) setModulesSectionFilter(firstModule.sectionId);
+      scrollToModules();
+      const list = moduleIssues
+        .map(mi => `- Module ${mi.index + 1}: ${mi.problems.join(', ')}`)
+        .join('\n');
+      alert(
+        'Certains modules sont incomplets. Veuillez corriger avant de créer la formation:\n\n' +
+        list +
+        '\n\nChamps requis par module: titre, description, durée (>= 1 minute).'
+      );
+      return;
+    }
+
     try {
+      // Uploader l'image de couverture si présente
+      let featuredImageUrl: string | undefined = undefined;
+      if (formData.featuredImage) {
+        try {
+          const fd = new FormData();
+          fd.append('file', formData.featuredImage);
+          fd.append('type', 'image');
+          const up = await fetch('/api/upload', { method: 'POST', body: fd, credentials: 'include' });
+          const upBody = await up.json();
+          if (!up.ok) throw new Error(upBody.error || 'Upload image échoué');
+          featuredImageUrl = upBody.url;
+        } catch (err: any) {
+          alert('Erreur lors de l\'upload de l\'image: ' + (err.message || 'inconnue'));
+          return;
+        }
+      }
       // Préparer les données pour l'API
       const formationPayload = {
         title: formData.title,
@@ -339,7 +495,14 @@ export default function NewFormation() {
         status: formData.status,
         featured: formData.featured,
         certificateEnabled: formData.certificateEnabled,
-        allowDiscussions: formData.allowDiscussions
+        allowDiscussions: formData.allowDiscussions,
+        metaTitle: formData.metaTitle,
+        metaDescription: formData.metaDescription,
+        featuredImage: featuredImageUrl,
+        sections: sections
+          .slice()
+          .sort((a,b)=>a.order-b.order)
+          .map((s, idx) => ({ title: s.title, order: idx }))
       };
 
       // Créer la formation
@@ -348,6 +511,7 @@ export default function NewFormation() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(formationPayload),
       });
 
@@ -362,12 +526,14 @@ export default function NewFormation() {
       // Ajouter les modules
       for (const module of modules) {
         const modulePayload = {
-          title: module.title,
-          description: module.description,
+          title: module.title.trim(),
+          description: module.description.trim(),
           duration: module.duration,
           type: module.type.toUpperCase(),
           content: module.content,
-          order: modules.indexOf(module)
+          order: modules.indexOf(module),
+          // Passer le nom de la section si sélectionnée
+          section: sections.find(s => s.id === module.sectionId)?.title
         };
 
         const moduleResponse = await fetch(`/api/formations/${formationId}/modules`, {
@@ -375,12 +541,14 @@ export default function NewFormation() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
           body: JSON.stringify(modulePayload),
         });
 
         if (!moduleResponse.ok) {
-          console.error('Erreur lors de l\'ajout du module:', module.title);
-          continue;
+          const errBody = await moduleResponse.json().catch(() => ({} as any));
+          console.error('Erreur lors de l\'ajout du module:', module.title, errBody);
+          throw new Error(`Erreur lors de l'ajout du module: ${module.title}`);
         }
 
         const moduleResult = await moduleResponse.json();
@@ -403,13 +571,19 @@ export default function NewFormation() {
             }))
           };
 
-          await fetch(`/api/modules/${moduleId}/quiz`, {
+          const quizResp = await fetch(`/api/modules/${moduleId}/quiz`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
+            credentials: 'include',
             body: JSON.stringify(quizPayload),
           });
+          if (!quizResp.ok) {
+            const qBody = await quizResp.json().catch(() => ({} as any));
+            console.error('Erreur lors de la création du quiz du module:', module.title, qBody);
+            throw new Error(`Erreur lors de la création du quiz pour: ${module.title}`);
+          }
         }
       }
 
@@ -562,7 +736,11 @@ export default function NewFormation() {
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Description courte de la formation (affichée dans les listes)"
+                    maxLength={300}
                   />
+                  <div className="text-xs text-gray-500 mt-1">
+                    {formData.shortDescription.length}/300 caractères
+                  </div>
                 </div>
 
                 <div>
@@ -797,8 +975,89 @@ export default function NewFormation() {
               </div>
             </div>
 
-            {/* Modules */}
+            {/* Sections */}
             <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Sections</h2>
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newSectionTitle}
+                    onChange={(e) => setNewSectionTitle(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Nom de la section (ex: Introduction)"
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSection())}
+                  />
+                  <button
+                    type="button"
+                    onClick={addSection}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" /> Ajouter
+                  </button>
+                </div>
+
+                {sections.length === 0 ? (
+                  <div className="text-sm text-gray-500">Aucune section. Ajoutez-en pour regrouper vos modules.</div>
+                ) : (
+                  <div className="space-y-2">
+                    {sections
+                      .slice()
+                      .sort((a, b) => a.order - b.order)
+                      .map((sec, idx) => {
+                        const mods = modules.filter(m => m.sectionId === sec.id);
+                        return (
+                          <div key={sec.id} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="flex items-center gap-3">
+                              <span className="w-6 text-center text-gray-500">{idx + 1}</span>
+                              <input
+                                type="text"
+                                value={sec.title}
+                                onChange={(e) => renameSection(sec.id, e.target.value)}
+                                className="flex-1 px-2 py-1 border border-gray-300 rounded"
+                              />
+                              <div className="flex items-center gap-1">
+                                <button type="button" onClick={() => moveSection(sec.id, 'up')} className="px-2 py-1 text-gray-600 hover:bg-gray-200 rounded">
+                                  ↑
+                                </button>
+                                <button type="button" onClick={() => moveSection(sec.id, 'down')} className="px-2 py-1 text-gray-600 hover:bg-gray-200 rounded">
+                                  ↓
+                                </button>
+                                <button type="button" onClick={() => removeSection(sec.id)} className="px-2 py-1 text-red-600 hover:bg-red-100 rounded">
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {mods.length === 0 ? (
+                                <span className="text-xs text-gray-500">Aucun module dans cette section</span>
+                              ) : (
+                                mods.map(m => (
+                                  <span key={m.id} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                                    {m.title || 'Module sans titre'}
+                                  </span>
+                                ))
+                              )}
+                            </div>
+                            <div className="mt-3">
+                              <button
+                                type="button"
+                                onClick={() => addModuleForSection(sec.id)}
+                                className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm flex items-center gap-2"
+                              >
+                                <Plus className="h-4 w-4" /> Ajouter un module à cette section
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modules */}
+            <div ref={modulesBlockRef} className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">Modules de formation</h2>
@@ -806,18 +1065,41 @@ export default function NewFormation() {
                     Organisez votre formation en modules ({modules.length} modules, {Math.round(getTotalDuration() / 60)}h {getTotalDuration() % 60}min au total)
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={addModule}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Ajouter un module</span>
-                </button>
+                <div className="flex items-center gap-3">
+                  <select
+                    value={modulesSectionFilter}
+                    onChange={(e) => setModulesSectionFilter(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    title="Filtrer par section"
+                  >
+                    <option value="all">Toutes les sections</option>
+                    <option value="none">Sans section</option>
+                    {sections.slice().sort((a,b)=>a.order-b.order).map(sec => (
+                      <option key={sec.id} value={sec.id}>{sec.title}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sid = modulesSectionFilter === 'all' ? undefined : (modulesSectionFilter === 'none' ? undefined : modulesSectionFilter);
+                      addModule(sid);
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Ajouter un module</span>
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-4">
-                {modules.map((module, index) => (
+                {modules
+                  .filter(m => {
+                    if (modulesSectionFilter === 'all') return true;
+                    if (modulesSectionFilter === 'none') return !m.sectionId;
+                    return m.sectionId === modulesSectionFilter;
+                  })
+                  .map((module, index) => (
                   <div key={module.id} className="border border-gray-200 rounded-lg">
                     <div className="p-4 bg-gray-50 flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -885,6 +1167,29 @@ export default function NewFormation() {
                           </div>
                         </div>
 
+                        {/* Section selection */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Section
+                          </label>
+                          <select
+                            value={module.sectionId || ''}
+                            onChange={(e) => updateModule(module.id, { sectionId: e.target.value || undefined })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="">Aucune</option>
+                            {sections
+                              .slice()
+                              .sort((a, b) => a.order - b.order)
+                              .map((sec) => (
+                                <option key={sec.id} value={sec.id}>{sec.title}</option>
+                              ))}
+                          </select>
+                          {sections.length === 0 && (
+                            <p className="text-xs text-gray-500 mt-1">Astuce: ajoutez des sections ci-dessus pour organiser vos modules.</p>
+                          )}
+                        </div>
+
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Description
@@ -914,18 +1219,84 @@ export default function NewFormation() {
                           </select>
                         </div>
 
-                        {module.type !== 'quiz' ? (
+                        {module.type === 'video' ? (
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Lien vidéo (YouTube/URL)</label>
+                              <input
+                                type="url"
+                                value={module.content}
+                                onChange={(e) => updateModule(module.id, { content: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="https://www.youtube.com/watch?v=xxxxxxxxxxx"
+                              />
+                              <p className="text-xs text-gray-500 mt-1">Collez un lien YouTube ou une URL vidéo valide.</p>
+                            </div>
+                            {toYouTubeEmbed(module.content) && (
+                              <div className="aspect-video w-full overflow-hidden rounded-lg border">
+                                <iframe
+                                  src={toYouTubeEmbed(module.content)}
+                                  className="w-full h-full"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                  referrerPolicy="strict-origin-when-cross-origin"
+                                  allowFullScreen
+                                  title="Aperçu vidéo"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ) : module.type !== 'quiz' ? (
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Contenu du module
-                            </label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Contenu du module</label>
+                            {/* Barre d'outils simple pour listes et images */}
+                            <div className="flex items-center gap-2 mb-2">
+                              <button
+                                type="button"
+                                onClick={() => updateModule(module.id, { content: (module.content || '') + (module.content?.endsWith('\n') ? '' : '\n') + '- Élément de liste\n' })}
+                                className="px-2 py-1 text-sm border rounded hover:bg-gray-50"
+                                title="Liste à puces"
+                              >• Liste</button>
+                              <button
+                                type="button"
+                                onClick={() => updateModule(module.id, { content: (module.content || '') + (module.content?.endsWith('\n') ? '' : '\n') + '1. Élément numéroté\n' })}
+                                className="px-2 py-1 text-sm border rounded hover:bg-gray-50"
+                                title="Liste numérotée"
+                              >1. Liste</button>
+                              <label className="px-2 py-1 text-sm border rounded hover:bg-gray-50 cursor-pointer">
+                                Insérer une image
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    try {
+                                      const fd = new FormData();
+                                      fd.append('file', file);
+                                      fd.append('type', 'image');
+                                      const resp = await fetch('/api/upload', { method: 'POST', body: fd, credentials: 'include' });
+                                      const data = await resp.json();
+                                      if (!resp.ok) throw new Error(data.error || 'Upload échoué');
+                                      const md = `\n\n![](${data.url})\n`;
+                                      updateModule(module.id, { content: (module.content || '') + md });
+                                    } catch (err: any) {
+                                      alert(err.message || 'Upload échoué');
+                                    } finally {
+                                      (e.target as HTMLInputElement).value = '';
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
                             <textarea
                               value={module.content}
                               onChange={(e) => updateModule(module.id, { content: e.target.value })}
-                              rows={6}
+                              rows={8}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="Contenu détaillé du module (texte, liens vidéo, instructions, etc.)"
+                              placeholder={"Utilisez du texte libre, des listes (\n- item ou 1. item) et insérez des images via le bouton ci-dessus.\nAffichage côté apprenant: le contenu est rendu en texte/HTML simple."}
                             />
+                            <p className="text-xs text-gray-500 mt-1">Astuce: vous pouvez coller des liens d'images existants (format ![alt](url)).</p>
                           </div>
                         ) : (
                           /* Quiz Configuration */

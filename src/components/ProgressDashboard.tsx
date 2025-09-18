@@ -60,8 +60,8 @@ interface Stats {
 
 // API Service
 class ProgressApiService {
-  private baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
-  private token = localStorage.getItem('token');
+  private baseUrl = '/api';
+  private token = (typeof window !== 'undefined') ? localStorage.getItem('token') : null;
 
   private async request(endpoint: string, options: RequestInit = {}) {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
@@ -82,15 +82,19 @@ class ProgressApiService {
   }
 
   async getProgress(formationId: string): Promise<UserProgress> {
-    return this.request(`/progress/${formationId}`);
+    return this.request(`/user/progress/${formationId}`);
   }
 
   async getAllProgress(): Promise<UserProgress[]> {
-    return this.request('/progress');
+    return this.request('/user/progress');
   }
 
   async getCertificates(): Promise<Certificate[]> {
-    return this.request('/certificates');
+    try {
+      return await this.request('/user/certificates');
+    } catch {
+      return [] as Certificate[];
+    }
   }
 
   async getStats(): Promise<Stats> {

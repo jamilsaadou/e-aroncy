@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRequireAuth, useSession } from '../../components/SessionProvider';
 import { UserProfile, UserName } from '../../components/UserProfile';
 import { RoleBasedNavigation, QuickActions } from '../../components/RoleBasedNavigation';
@@ -33,6 +33,57 @@ function Dashboard() {
   if (!isAuthenticated || !user) {
     return null; // La redirection est gérée par useRequireAuth
   }
+
+  // Stats en direct
+  const [stats, setStats] = useState<{
+    totalEnrollments: number;
+    completedFormations: number;
+    certificatesEarned: number;
+    totalTimeSpent: number; // minutes
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState('');
+  const [enrollments, setEnrollments] = useState<Array<{ id: string; title: string; progress: number; formationId: string }>>([]);
+  const [enrLoading, setEnrLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadStats() {
+      try {
+        setStatsLoading(true);
+        setStatsError('');
+        const res = await fetch('/api/user/stats', { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erreur chargement statistiques');
+        if (mounted) setStats(data);
+      } catch (e: any) {
+        if (mounted) setStatsError(e.message || 'Erreur chargement statistiques');
+      } finally {
+        if (mounted) setStatsLoading(false);
+      }
+    }
+    if (isAuthenticated) loadStats();
+    return () => { mounted = false; };
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadEnrollments() {
+      try {
+        setEnrLoading(true);
+        const res = await fetch('/api/user/enrollments', { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erreur chargement formations');
+        if (mounted) setEnrollments(data.items || []);
+      } catch (e) {
+        // silencieux, section peut rester vide
+      } finally {
+        if (mounted) setEnrLoading(false);
+      }
+    }
+    if (!hasAdminAccess && isAuthenticated) loadEnrollments();
+    return () => { mounted = false; };
+  }, [hasAdminAccess, isAuthenticated]);
 
   // Vérifier si l'utilisateur a des privilèges administratifs
   const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
@@ -73,7 +124,7 @@ function Dashboard() {
           </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards (données réelles) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center">
@@ -82,7 +133,9 @@ function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Formations</p>
-                <p className="text-2xl font-bold text-gray-900">3</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {statsLoading ? '—' : (stats?.totalEnrollments ?? 0)}
+                </p>
               </div>
             </div>
           </div>
@@ -94,7 +147,9 @@ function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Certificats</p>
-                <p className="text-2xl font-bold text-gray-900">1</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {statsLoading ? '—' : (stats?.certificatesEarned ?? 0)}
+                </p>
               </div>
             </div>
           </div>
@@ -106,7 +161,16 @@ function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Progression</p>
-                <p className="text-2xl font-bold text-gray-900">75%</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {statsLoading
+                    ? '—'
+                    : (() => {
+                        const total = stats?.totalEnrollments ?? 0;
+                        const done = stats?.completedFormations ?? 0;
+                        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+                        return `${pct}%`;
+                      })()}
+                </p>
               </div>
             </div>
           </div>
@@ -118,11 +182,26 @@ function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Temps d'étude</p>
-                <p className="text-2xl font-bold text-gray-900">24h</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {statsLoading
+                    ? '—'
+                    : (() => {
+                        const mins = stats?.totalTimeSpent ?? 0;
+                        const h = Math.floor(mins / 60);
+                        const m = mins % 60;
+                        return h > 0 ? `${h}h${m ? ' ' + m + 'm' : ''}` : `${m}m`;
+                      })()}
+                </p>
               </div>
             </div>
           </div>
         </div>
+
+        {statsError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            {statsError}
+          </div>
+        )}
 
         {/* Navigation basée sur les rôles */}
         <div className="mb-8">
@@ -146,41 +225,31 @@ function Dashboard() {
                 {!hasAdminAccess ? (
                   // Contenu pour les apprenants
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="bg-blue-100 p-2 rounded-lg">
-                          <Shield className="h-5 w-5 text-blue-600" />
+                    {enrLoading && (
+                      <div className="text-sm text-gray-500">Chargement des formations en cours...</div>
+                    )}
+                    {!enrLoading && enrollments.length === 0 && (
+                      <div className="text-sm text-gray-500">Aucune formation en cours.</div>
+                    )}
+                    {enrollments.map((e) => (
+                      <div key={e.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="bg-blue-100 p-2 rounded-lg">
+                            <Shield className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-gray-900">{e.title}</h3>
+                            <p className="text-xs text-gray-500">En cours</p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">Fondamentaux de la Cybersécurité</h3>
-                          <p className="text-sm text-gray-600">Module 3 sur 5</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium text-blue-600">60%</div>
-                        <div className="w-20 bg-gray-200 rounded-full h-2 mt-1">
-                          <div className="bg-blue-600 h-2 rounded-full" style={{ width: '60%' }}></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="bg-green-100 p-2 rounded-lg">
-                          <Users className="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">Sensibilisation Phishing</h3>
-                          <p className="text-sm text-gray-600">Module 2 sur 3</p>
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-blue-600">{e.progress}%</div>
+                          <div className="w-28 bg-gray-200 rounded-full h-2 mt-1">
+                            <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${e.progress}%` }}></div>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium text-green-600">85%</div>
-                        <div className="w-20 bg-gray-200 rounded-full h-2 mt-1">
-                          <div className="bg-green-600 h-2 rounded-full" style={{ width: '85%' }}></div>
-                        </div>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 ) : (
                   // Contenu pour les administrateurs/instructeurs

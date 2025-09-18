@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Shield, Mail, Lock, Eye, EyeOff, Loader, AlertCircle } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Shield, Mail, Lock, Eye, EyeOff, Loader, AlertCircle, CheckCircle } from 'lucide-react';
 import { useSession } from '../../components/SessionProvider';
+import Header from '@/components/Header';
 
 export default function SecureLogin() {
   const [formData, setFormData] = useState({
@@ -17,8 +18,13 @@ export default function SecureLogin() {
   const [error, setError] = useState('');
   const [requires2FA, setRequires2FA] = useState(false);
   const [totpCode, setTotpCode] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMsg, setResendMsg] = useState('');
 
   const router = useRouter();
+  const search = useSearchParams();
+  const activated = search.get('activated') === '1';
+  const infoMsg = activated ? 'Votre compte est activé. Vous pouvez vous connecter.' : '';
   const { isAuthenticated, isLoading: sessionLoading, user } = useSession();
 
   // Rediriger si l'utilisateur est déjà connecté
@@ -97,8 +103,8 @@ export default function SecureLogin() {
         throw new Error(data.error || 'Erreur de connexion');
       }
 
-      // Gestion de la 2FA
-      if (data.requires2FA && !requires2FA) {
+      // Gestion de la vérification par email
+      if ((data.requires2FA || data.requiresEmailOTP) && !requires2FA) {
         setRequires2FA(true);
         setLoading(false);
         return;
@@ -144,25 +150,24 @@ export default function SecureLogin() {
     setError('');
 
     try {
-      const loginData = {
+      const verifyData = {
         email: formData.email,
-        password: formData.password,
+        code: totpCode,
         rememberMe: formData.rememberMe,
-        totpCode: totpCode
       };
 
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/login/verify-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(loginData)
+        body: JSON.stringify(verifyData)
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Code 2FA invalide');
+        throw new Error(data.error || 'Code invalide');
       }
 
       if (data.success) {
@@ -184,6 +189,32 @@ export default function SecureLogin() {
     }
   };
 
+  const handleResend = async () => {
+    try {
+      setResendLoading(true);
+      setResendMsg('');
+      const res = await fetch('/api/auth/login/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 429 && data.retryAfter) {
+          setResendMsg(`Veuillez patienter ${data.retryAfter}s avant un nouvel envoi.`);
+        } else {
+          setResendMsg(data.error || 'Échec de renvoi du code');
+        }
+        return;
+      }
+      setResendMsg('Nouveau code envoyé. Vérifiez votre email.');
+    } catch (err) {
+      setResendMsg('Erreur réseau lors de l\'envoi du code');
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   // Fonction OAuth (à implémenter)
   async function handleOAuthLogin(provider: string) {
     try {
@@ -197,31 +228,59 @@ export default function SecureLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <Link href="/" className="inline-flex items-center space-x-3 mb-8">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-3 rounded-lg">
-              <Shield className="h-8 w-8 text-white" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              E-ARONCY
-            </span>
-          </Link>
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">
-            {requires2FA ? 'Authentification 2FA' : 'Connexion à votre compte'}
-          </h2>
-          <p className="text-slate-600">
-            {requires2FA 
-              ? 'Saisissez le code de votre application d\'authentification'
-              : 'Accédez à votre espace de formation en cybersécurité'
-            }
-          </p>
-        </div>
+    <div className="min-h-screen bg-white">
+      <Header />
 
-        {/* Login Form */}
-        <div className="bg-white rounded-xl shadow-lg p-8 border border-slate-200">
+      {/* Hero-like section aligned with home */}
+      <section className="bg-gradient-to-br from-slate-50 to-blue-50 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left content: consistent with homepage tone */}
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-3 rounded-lg">
+                  <Shield className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  E-ARONCY
+                </span>
+              </div>
+              <h1 className="text-4xl font-bold text-slate-900">
+                {requires2FA ? 'Vérification par email' : 'Connexion à votre compte'}
+              </h1>
+              <p className="text-slate-600 text-lg">
+                {requires2FA
+                  ? "Saisissez le code reçu par email"
+                  : "Accédez à votre espace de formation en cybersécurité"}
+              </p>
+              {!requires2FA && (
+                <ul className="space-y-2 text-slate-700">
+                  <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                    <span className="text-sm">Cours et ressources adaptés aux ONG</span>
+                  </li>
+                  <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                    <span className="text-sm">Suivi de progression et certifications</span>
+                  </li>
+                  <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+                    <span className="text-sm">Sécurité renforcée avec 2FA</span>
+                  </li>
+                </ul>
+              )}
+              <div className="text-slate-600 text-sm">
+                Pas encore de compte ?{' '}
+                <Link href="/register" className="text-blue-600 hover:text-blue-500 font-medium">Créer un compte</Link>
+              </div>
+            </div>
+
+            {/* Right column: Login card */}
+            <div className="max-w-md w-full mx-auto lg:mx-0">
+              <div className="bg-white rounded-xl shadow-lg p-8 border border-slate-200">
+          {infoMsg && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-3">
+              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+              <span className="text-green-700 text-sm">{infoMsg}</span>
+            </div>
+          )}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-3">
               <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
@@ -328,11 +387,11 @@ export default function SecureLogin() {
               </button>
             </form>
           ) : (
-            // Formulaire 2FA
+            // Formulaire code email
             <form onSubmit={handle2FASubmit} className="space-y-6">
               <div>
                 <label htmlFor="totpCode" className="block text-sm font-medium text-slate-700 mb-2">
-                  Code d'authentification
+                  Code de vérification
                 </label>
                 <input
                   id="totpCode"
@@ -347,9 +406,18 @@ export default function SecureLogin() {
                   autoComplete="one-time-code"
                   disabled={loading}
                 />
-                <p className="text-xs text-slate-500 mt-2">
-                  Saisissez le code à 6 chiffres de votre application d'authentification
-                </p>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-xs text-slate-500">Saisissez le code à 6 chiffres reçu par email</p>
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resendLoading}
+                    className="text-xs text-blue-600 hover:text-blue-700"
+                  >
+                    {resendLoading ? 'Envoi...' : 'Renvoyer le code'}
+                  </button>
+                </div>
+                {resendMsg && <p className="text-xs mt-1 text-slate-600">{resendMsg}</p>}
               </div>
 
               <div className="flex space-x-3">
@@ -442,18 +510,11 @@ export default function SecureLogin() {
               </div>
             </>
           )}
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* Sign up link */}
-        <div className="text-center">
-          <p className="text-slate-600">
-            Pas encore de compte ?{' '}
-            <Link href="/register" className="text-blue-600 hover:text-blue-500 font-medium">
-              Créer un compte
-            </Link>
-          </p>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

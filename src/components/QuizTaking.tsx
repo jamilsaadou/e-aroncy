@@ -45,7 +45,8 @@ interface QuizResult {
 
 // API Service
 class QuizApiService {
-  private baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+  // Utilise les routes Next internes
+  private baseUrl = '/api';
   private token = localStorage.getItem('token');
 
   private async request(endpoint: string, options: RequestInit = {}) {
@@ -381,7 +382,7 @@ function QuizResults({ result, onRetry, onContinue }: {
 }
 
 // Main Quiz Component
-export default function QuizTaking({ quizId }: { quizId: string }) {
+export default function QuizTaking({ quizId, nextUrl }: { quizId: string; nextUrl?: string }) {
   const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -524,8 +525,8 @@ export default function QuizTaking({ quizId }: { quizId: string }) {
           setAnswers(initialAnswers);
         } : undefined}
         onContinue={() => {
-          // Navigate to next module or course completion
-          window.history.back();
+          if (nextUrl) window.location.href = nextUrl;
+          else window.history.back();
         }}
       />
     );

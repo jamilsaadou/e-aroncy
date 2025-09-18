@@ -2,20 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/database';
 import { requireAuth, requireRole, createAuthErrorResponse } from '../../../../lib/auth';
 import { z } from 'zod';
-import { UserRole } from '@prisma/client';
+import { Role } from '@prisma/client';
 
 // GET /api/formations/[id] - Récupérer une formation spécifique
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const formation = await prisma.formation.findUnique({
       where: { id },
       include: {
-        user: {
+        instructorUser: {
           select: { 
             firstName: true, 
             lastName: true, 
@@ -28,9 +28,13 @@ export async function GET(
             quiz: {
               include: { questions: true }
             },
-            resources: true
+            resources: true,
+            section: true
           },
-          orderBy: { order: 'asc' }
+          orderBy: [
+            { section: { order: 'asc' } },
+            { order: 'asc' }
+          ]
         },
         _count: {
           select: { enrollments: true }
@@ -59,16 +63,16 @@ export async function GET(
 // PUT /api/formations/[id] - Mettre à jour une formation
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification et les droits admin/instructor
-    const authResult = await requireRole([UserRole.ADMIN, UserRole.INSTRUCTOR])(request);
+    const authResult = await requireRole([Role.ADMIN, Role.INSTRUCTOR])(request);
     if (authResult.error || !authResult.user) {
       return createAuthErrorResponse(authResult.error || 'Non autorisé', 403);
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     // Valider les données
@@ -89,23 +93,28 @@ export async function PUT(
       status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional(),
       featured: z.boolean().optional(),
       certificateEnabled: z.boolean().optional(),
-      allowDiscussions: z.boolean().optional()
+      allowDiscussions: z.boolean().optional(),
+      // Champs additionnels
+      metaTitle: z.preprocess((v) => v ?? undefined, z.string().max(120).optional()),
+      metaDescription: z.preprocess((v) => v ?? undefined, z.string().max(300).optional()),
+      featuredImage: z.preprocess((v) => v ?? undefined, z.string().optional())
     });
 
     const formationData = FormationSchema.parse(body);
 
-    // Vérifier que la formation existe et appartient à l'utilisateur
-    const existingFormation = await prisma.formation.findFirst({
-      where: { 
-        id,
-        instructorId: authResult.user.id 
-      }
-    });
-
+    // Vérifier que la formation existe et les permissions
+    const existingFormation = await prisma.formation.findUnique({ where: { id } });
     if (!existingFormation) {
       return NextResponse.json(
-        { error: 'Formation non trouvée ou non autorisée' },
+        { error: 'Formation non trouvée' },
         { status: 404 }
+      );
+    }
+    // Si l'utilisateur est INSTRUCTOR, il doit être propriétaire. Les ADMIN peuvent tout modifier.
+    if ((authResult.user.role as Role) === Role.INSTRUCTOR && existingFormation.instructorId !== authResult.user.id) {
+      return NextResponse.json(
+        { error: 'Non autorisé' },
+        { status: 403 }
       );
     }
 
@@ -143,29 +152,29 @@ export async function PUT(
 // DELETE /api/formations/[id] - Supprimer une formation
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification et les droits admin/instructor
-    const authResult = await requireRole([UserRole.ADMIN, UserRole.INSTRUCTOR])(request);
+    const authResult = await requireRole([Role.ADMIN, Role.INSTRUCTOR])(request);
     if (authResult.error || !authResult.user) {
       return createAuthErrorResponse(authResult.error || 'Non autorisé', 403);
     }
 
-    const { id } = params;
+    const { id } = await params;
 
-    // Vérifier que la formation existe et appartient à l'utilisateur
-    const existingFormation = await prisma.formation.findFirst({
-      where: { 
-        id,
-        instructorId: authResult.user.id 
-      }
-    });
-
+    // Vérifier que la formation existe et permissions
+    const existingFormation = await prisma.formation.findUnique({ where: { id } });
     if (!existingFormation) {
       return NextResponse.json(
-        { error: 'Formation non trouvée ou non autorisée' },
+        { error: 'Formation non trouvée' },
         { status: 404 }
+      );
+    }
+    if ((authResult.user.role as Role) === Role.INSTRUCTOR && existingFormation.instructorId !== authResult.user.id) {
+      return NextResponse.json(
+        { error: 'Non autorisé' },
+        { status: 403 }
       );
     }
 

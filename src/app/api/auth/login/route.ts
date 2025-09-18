@@ -9,8 +9,8 @@ import {
   logUserActivity,
   AuthUser
 } from '../../../../lib/auth';
-import speakeasy from 'speakeasy';
 import bcrypt from 'bcryptjs';
+import { createAndSendOTP } from '../../../../lib/otp';
 
 export async function POST(request: NextRequest) {
   try {
@@ -79,71 +79,18 @@ export async function POST(request: NextRequest) {
       return createAuthErrorResponse(message, 403);
     }
 
-    // Vérifier 2FA si activé
-    if (user.twoFactorEnabled) {
-      if (!totpCode) {
-        return NextResponse.json({ 
-          requires2FA: true,
-          message: 'Code d\'authentification à deux facteurs requis'
-        });
-      }
+    // Étape OTP par email: envoyer un code et demander vérification
+    await createAndSendOTP({ userId: user.id, email: user.email, type: 'LOGIN' });
 
-      const verified = speakeasy.totp.verify({
-        secret: user.twoFactorSecret!,
-        encoding: 'ascii',
-        token: totpCode,
-        window: 2 // Permet une tolérance de ±2 intervalles (60s)
-      });
-
-      if (!verified) {
-        // Incrémenter les tentatives de connexion
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { failedLoginAttempts: user.failedLoginAttempts + 1 }
-        });
-
-        await logUserActivity(user.id, '2fa_failed', request, false, 
-          { totpCode: 'hidden' }, 'Code 2FA invalide');
-        return createAuthErrorResponse('Code d\'authentification invalide', 401);
-      }
-
-      await logUserActivity(user.id, '2fa_verified', request, true);
-    }
-
-    // Connexion réussie - Reset des tentatives
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        failedLoginAttempts: 0,
-        lockUntil: null,
-        lastLogin: new Date(),
-        lastActivity: new Date()
-      }
+    await logUserActivity(user.id, 'login_otp_sent', request, true, {
+      delivery: 'email'
     });
 
-    // Générer le token JWT
-    const sessionId = `${user.id}_${Date.now()}`;
-    const token = generateToken(user, sessionId);
-
-    // Logger la connexion réussie
-    await logUserActivity(user.id, 'login', request, true, {
-      rememberMe,
-      twoFactorUsed: user.twoFactorEnabled,
-      sessionId
+    return NextResponse.json({
+      success: true,
+      requiresEmailOTP: true,
+      message: 'Un code de vérification a été envoyé à votre email.'
     });
-
-    // Créer l'objet utilisateur pour la réponse
-    const authUser: AuthUser = {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      organization: user.organization,
-      twoFactorEnabled: user.twoFactorEnabled
-    };
-
-    return createAuthSuccessResponse(authUser, token, 'Connexion réussie');
 
   } catch (error) {
     console.error('Login error:', error);

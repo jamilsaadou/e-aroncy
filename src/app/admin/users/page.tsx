@@ -532,10 +532,29 @@ export default function UsersPage() {
                               >
                                 <Eye className="h-4 w-4" />
                               </Link>
-                              <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded">
+                              <Link
+                                href={`/admin/users/${user.id}`}
+                                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded"
+                                title="Modifier"
+                              >
                                 <Edit className="h-4 w-4" />
-                              </button>
-                              <button className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded">
+                              </Link>
+                              <button
+                                onClick={async () => {
+                                  const ok = confirm(`Supprimer l'utilisateur ${user.email} ? Cette action est irréversible.`);
+                                  if (!ok) return;
+                                  try {
+                                    const res = await fetch(`/api/admin/users/${user.id}`, { method: 'DELETE', credentials: 'include' });
+                                    const data = await res.json();
+                                    if (!res.ok) throw new Error(data.error || 'Échec de suppression');
+                                    await loadUsers();
+                                  } catch (e: any) {
+                                    alert(e.message || 'Erreur lors de la suppression');
+                                  }
+                                }}
+                                className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded"
+                                title="Supprimer"
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </button>
                             </div>

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireRole, createAuthErrorResponse, getClientIP, getUserAgent } from '../../../../../lib/auth';
+import { sendAdminTempPasswordEmail, sendPasswordResetLinkEmail } from '../../../../../lib/mailer';
+import { generatePasswordResetToken } from '../../../../../lib/auth';
 import prisma from '../../../../../lib/database';
 
 // GET - Récupérer les détails d'un utilisateur spécifique
@@ -125,11 +127,33 @@ export async function PUT(
     if (twoFactorEnabled !== undefined) updateData.twoFactorEnabled = twoFactorEnabled;
 
     // Reset du mot de passe si demandé
-    if (resetPassword && resetPassword.newPassword) {
+    if (resetPassword) {
       const bcrypt = require('bcryptjs');
-      updateData.password = await bcrypt.hash(resetPassword.newPassword, 12);
-      updateData.failedLoginAttempts = 0;
-      updateData.lockUntil = null;
+      const notify = !!resetPassword.notify;
+
+      if (resetPassword.newPassword) {
+        updateData.password = await bcrypt.hash(resetPassword.newPassword, 12);
+        updateData.failedLoginAttempts = 0;
+        updateData.lockUntil = null;
+        // Optionnel: notifier l'utilisateur du nouveau mot de passe
+        if (notify) {
+          try {
+            await sendAdminTempPasswordEmail(existingUser.email, resetPassword.newPassword);
+          } catch (e) {
+            console.error('Erreur envoi email mot de passe défini par admin:', e);
+          }
+        }
+      } else if (resetPassword.generateLink) {
+        // Générer un lien sécurisé de réinitialisation
+        const token = generatePasswordResetToken(existingUser.id, existingUser.email);
+        const appUrl = process.env.APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+        const link = `${appUrl}/reset-password?token=${encodeURIComponent(token)}`;
+        try {
+          await sendPasswordResetLinkEmail(existingUser.email, link);
+        } catch (e) {
+          console.error('Erreur envoi email lien de réinitialisation:', e);
+        }
+      }
     }
 
     // Débloquer le compte si demandé
@@ -258,4 +282,27 @@ export async function OPTIONS() {
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   });
+}
+
+// Générateur local d'un mot de passe fort
+function generateStrongPassword(length: number = 12): string {
+  const lowers = 'abcdefghijklmnopqrstuvwxyz';
+  const uppers = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const digits = '0123456789';
+  const symbols = '!@#$%^&*()-_=+[]{};:,.?';
+  const all = lowers + uppers + digits + symbols;
+
+  function pick(str: string) { return str[Math.floor(Math.random() * str.length)]; }
+
+  // Garantir au moins un de chaque
+  const must = [pick(lowers), pick(uppers), pick(digits), pick(symbols)];
+  const restLen = Math.max(length - must.length, 0);
+  const rest = Array.from({ length: restLen }, () => pick(all));
+  const chars = [...must, ...rest];
+  // Shuffle
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  return chars.join('');
 }

@@ -111,7 +111,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
         setUser(data.user);
         sessionManager.startSessionMonitoring();
         return true;
-      } else if (data.requires2FA) {
+      } else if (data.requires2FA || data.requiresEmailOTP) {
         // Retourner false mais avec un indicateur spécial pour 2FA
         return false;
       } else {

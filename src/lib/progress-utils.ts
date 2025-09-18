@@ -1,5 +1,63 @@
 import { prisma } from './database';
 
+// Nouveau calcul: basé sur ItemProgress
+export async function recalculateProgressFromItems(userId: string, formationId: string): Promise<void> {
+  try {
+    const [modules, itemProgressList] = await Promise.all([
+      prisma.module.findMany({ where: { formationId } }),
+      prisma.itemProgress.findMany({ where: { userId, formationId } })
+    ]);
+
+    if (modules.length === 0) {
+      // Rien à faire
+      return;
+    }
+
+    const completedStatuses = new Set(['COMPLETED', 'PASSED']);
+    const moduleProgressById = new Map(itemProgressList.filter(ip => ip.moduleId).map(ip => [ip.moduleId!, ip]));
+
+    let completedModules = 0;
+    for (const m of modules) {
+      const ip = moduleProgressById.get(m.id);
+      if (ip && completedStatuses.has(ip.status)) completedModules++;
+    }
+
+    const progressPercentage = (completedModules / modules.length) * 100;
+
+    await prisma.userProgress.upsert({
+      where: {
+        userId_formationId: { userId, formationId }
+      },
+      update: {
+        completedModules,
+        progressPercentage,
+        lastAccessedAt: new Date(),
+        updatedAt: new Date()
+      },
+      create: {
+        userId,
+        formationId,
+        completedModules,
+        progressPercentage,
+        startedAt: new Date(),
+        updatedAt: new Date()
+      }
+    });
+
+    // Mettre à jour le cache d'inscription si présent
+    await prisma.enrollment.updateMany({
+      where: { userId, formationId },
+      data: { progress: progressPercentage }
+    });
+
+    if (progressPercentage >= 100) {
+      await generateCertificate(userId, formationId);
+    }
+  } catch (error) {
+    console.error('Erreur recalculateProgressFromItems:', error);
+  }
+}
+
 // Fonction pour mettre à jour le progrès d'un utilisateur
 export async function updateUserProgress(userId: string, formationId: string): Promise<void> {
   try {
@@ -23,15 +81,21 @@ export async function updateUserProgress(userId: string, formationId: string): P
         });
         if (passedSession) completedModules++;
       } else {
-        // Pour les modules sans quiz, on considère qu'ils sont terminés
-        // (vous pouvez ajouter une logique plus sophistiquée ici)
-        completedModules++;
+        // Pour les modules sans quiz, considérer comme complété uniquement si l'activité existe
+        const completedActivity = await prisma.userActivity.findFirst({
+          where: {
+            userId,
+            action: 'module_completed',
+            details: { contains: module.id }
+          }
+        });
+        if (completedActivity) completedModules++;
       }
     }
 
     const progressPercentage = modules.length > 0 ? (completedModules / modules.length) * 100 : 0;
 
-    // Mettre à jour ou créer le progrès
+    // Mettre à jour ou créer le progrès (ancienne méthode)
     await prisma.userProgress.upsert({
       where: {
         userId_formationId: {
@@ -52,6 +116,12 @@ export async function updateUserProgress(userId: string, formationId: string): P
         startedAt: new Date(),
         updatedAt: new Date()
       }
+    });
+
+    // Mettre aussi le cache d'inscription
+    await prisma.enrollment.updateMany({
+      where: { userId, formationId },
+      data: { progress: progressPercentage }
     });
 
     // Si la formation est terminée, générer un certificat si nécessaire

@@ -3,10 +3,11 @@ import { prisma } from '../../../../lib/database';
 import { 
   createAuthErrorResponse,
   validatePasswordStrength,
-  logUserActivity
+  logUserActivity,
+  generateEmailVerificationToken
 } from '../../../../lib/auth';
-import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
+import { sendActivationLinkEmail } from '../../../../lib/mailer';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,10 +31,6 @@ export async function POST(request: NextRequest) {
       firstName: 'Prénom',
       lastName: 'Nom',
       email: 'Email',
-      organization: 'Organisation',
-      orgType: 'Type d\'organisation',
-      country: 'Pays',
-      position: 'Poste',
       password: 'Mot de passe'
     };
 
@@ -70,17 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validation du type d'organisation
-    const validOrgTypes = ['ONG', 'ASSOCIATION', 'FONDATION', 'INSTITUTION', 'ENTREPRISE', 'AUTRE'];
-    if (!validOrgTypes.includes(orgType.toUpperCase())) {
-      return createAuthErrorResponse('Type d\'organisation invalide', 400);
-    }
-
-    // Validation du pays (codes ISO simplifiés pour l'Afrique de l'Ouest)
-    const validCountries = ['ci', 'bf', 'ne', 'ml', 'sn', 'gn', 'gh', 'tg', 'bj', 'lr', 'sl', 'gw', 'cv', 'gm', 'mr'];
-    if (!validCountries.includes(country.toLowerCase())) {
-      return createAuthErrorResponse('Pays non supporté', 400);
-    }
+    // Les champs orgType, country, position, phone, newsletter sont optionnels et non stockés
 
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await prisma.user.findUnique({
@@ -93,9 +80,6 @@ export async function POST(request: NextRequest) {
       return createAuthErrorResponse('Un compte avec cet email existe déjà', 409);
     }
 
-    // Générer un token de vérification d'email
-    const emailVerificationToken = crypto.randomBytes(32).toString('hex');
-
     // Hasher le mot de passe
     const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -106,34 +90,31 @@ export async function POST(request: NextRequest) {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.toLowerCase().trim(),
-        phone: phone?.trim(),
-        organization: organization.trim(),
-        orgType: orgType.toUpperCase() as any,
-        country: country.toLowerCase(),
-        position: position.trim(),
+        organization: organization ? organization.trim() : null,
         password: hashedPassword,
-        newsletter,
         status: 'PENDING', // En attente de vérification email
         emailVerified: false,
-        emailVerificationToken,
         role: 'STUDENT'
       }
     });
 
     // Logger l'inscription
     await logUserActivity(newUser.id, 'register', request, true, {
-      organization: organization.trim(),
+      organization: organization ? organization.trim() : undefined,
       orgType,
       country,
       newsletter
     });
 
-    // TODO: Envoyer l'email de vérification
-    // await sendVerificationEmail(newUser.email, emailVerificationToken);
+    // Générer un lien d'activation et l'envoyer par email
+    const token = generateEmailVerificationToken(newUser.id, newUser.email);
+    const appUrl = process.env.APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const link = `${appUrl}/api/auth/register/activate?token=${encodeURIComponent(token)}&redirect=login`;
+    await sendActivationLinkEmail(newUser.email, link);
 
     return NextResponse.json({
       success: true,
-      message: 'Compte créé avec succès. Vérifiez votre email pour activer votre compte.',
+      message: 'Compte créé avec succès. Un email d\'activation vous a été envoyé.',
       user: {
         id: newUser.id,
         email: newUser.email,

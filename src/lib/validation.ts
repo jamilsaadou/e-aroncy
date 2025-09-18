@@ -63,10 +63,10 @@ export const RegistrationSchema = z.object({
   password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
   firstName: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
   lastName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
-  organization: z.string().min(2, 'L\'organisation doit contenir au moins 2 caractères'),
-  orgType: z.enum(['ONG', 'ASSOCIATION', 'FONDATION', 'INSTITUTION', 'ENTREPRISE', 'AUTRE']),
+  organization: z.string().min(2, 'L\'organisation doit contenir au moins 2 caractères').optional(),
+  orgType: z.enum(['ONG', 'ASSOCIATION', 'FONDATION', 'INSTITUTION', 'ENTREPRISE', 'AUTRE']).optional(),
   country: z.string().min(2, 'Le pays doit être spécifié'),
-  position: z.string().min(2, 'Le poste doit être spécifié'),
+  position: z.string().min(2, 'Le poste doit être spécifié').optional(),
   phone: z.string().optional(),
   newsletter: z.boolean().default(false)
 });

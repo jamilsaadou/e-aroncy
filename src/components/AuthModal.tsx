@@ -18,7 +18,10 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [requires2FA, setRequires2FA] = useState(false);
+  const [info, setInfo] = useState('');
   const [totpCode, setTotpCode] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMsg, setResendMsg] = useState('');
   const router = useRouter();
 
   // Formulaire de connexion
@@ -132,7 +135,7 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
         throw new Error(data.error || 'Erreur de connexion');
       }
 
-      if (data.requires2FA && !requires2FA) {
+      if ((data.requires2FA || data.requiresEmailOTP) && !requires2FA) {
         setRequires2FA(true);
         setLoading(false);
         return;
@@ -170,25 +173,24 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
     setError('');
 
     try {
-      const loginPayload = {
+      const verifyPayload = {
         email: loginData.email,
-        password: loginData.password,
+        code: totpCode,
         rememberMe: loginData.rememberMe,
-        totpCode: totpCode
       };
 
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/login/verify-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(loginPayload)
+        body: JSON.stringify(verifyPayload)
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Code 2FA invalide');
+        throw new Error(data.error || 'Code invalide');
       }
 
       if (data.success) {
@@ -208,6 +210,32 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
       setError(error.message || 'Code 2FA invalide');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      setResendLoading(true);
+      setResendMsg('');
+      const res = await fetch('/api/auth/login/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginData.email })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 429 && data.retryAfter) {
+          setResendMsg(`Veuillez patienter ${data.retryAfter}s avant un nouvel envoi.`);
+        } else {
+          setResendMsg(data.error || 'Échec de renvoi du code');
+        }
+        return;
+      }
+      setResendMsg('Nouveau code envoyé. Vérifiez votre email.');
+    } catch (err) {
+      setResendMsg('Erreur réseau lors de l\'envoi du code');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -254,11 +282,11 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
       }
 
       if (data.success) {
-        // Inscription réussie, basculer vers la connexion
+        // Inscription réussie, basculer vers la connexion et informer
         setMode('login');
         setError('');
+        setInfo(`Un email d'activation a été envoyé à ${registerData.email}. Consultez votre boîte de réception et suivez le lien pour activer votre compte.`);
         setLoginData(prev => ({ ...prev, email: registerData.email }));
-        // Optionnel: afficher un message de succès
       }
 
     } catch (error: any) {
@@ -297,13 +325,13 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
               <div>
                 <h2 className="text-xl font-bold text-slate-900">
                   {mode === 'login' 
-                    ? (requires2FA ? 'Authentification 2FA' : 'Connexion') 
+                    ? (requires2FA ? 'Vérification par email' : 'Connexion') 
                     : 'Inscription'
                   }
                 </h2>
                 <p className="text-sm text-slate-600">
                   {mode === 'login' 
-                    ? (requires2FA ? 'Saisissez votre code 2FA' : 'Accédez à votre compte') 
+                    ? (requires2FA ? 'Saisissez le code reçu par email' : 'Accédez à votre compte') 
                     : 'Rejoignez E-ARONCY'
                   }
                 </p>
@@ -319,6 +347,11 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
 
           {/* Content */}
           <div className="p-6 max-h-[70vh] overflow-y-auto">
+            {info && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                {info}
+              </div>
+            )}
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">
                 <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
@@ -415,11 +448,11 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
                   </button>
                 </form>
               ) : (
-                // Formulaire 2FA
+                // Formulaire code email
                 <form onSubmit={handle2FASubmit} className="space-y-4">
                   <div>
                     <label htmlFor="totpCode" className="block text-sm font-medium text-slate-700 mb-1">
-                      Code d'authentification
+                      Code reçu par email
                     </label>
                     <input
                       id="totpCode"
@@ -433,9 +466,18 @@ export default function AuthModal({ isOpen, onClose, initialMode }: AuthModalPro
                       maxLength={6}
                       disabled={loading}
                     />
-                    <p className="text-xs text-slate-500 mt-1">
-                      Code à 6 chiffres de votre app d'authentification
-                    </p>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-xs text-slate-500">Code à 6 chiffres reçu par email</p>
+                      <button
+                        type="button"
+                        onClick={handleResend}
+                        disabled={resendLoading}
+                        className="text-xs text-blue-600 hover:text-blue-700"
+                      >
+                        {resendLoading ? 'Envoi...' : 'Renvoyer le code'}
+                      </button>
+                    </div>
+                    {resendMsg && <p className="text-xs mt-1 text-slate-600">{resendMsg}</p>}
                   </div>
 
                   <div className="flex space-x-3">

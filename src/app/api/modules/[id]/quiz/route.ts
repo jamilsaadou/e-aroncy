@@ -22,7 +22,7 @@ const QuizSchema = z.object({
 // POST /api/modules/[id]/quiz - Créer un quiz pour un module
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -36,27 +36,25 @@ export async function POST(
       return createAuthErrorResponse('Permissions insuffisantes', 403);
     }
 
-    const { id: moduleId } = params;
+    const { id: moduleId } = await params;
     const body = await request.json();
 
     // Valider les données
     const quizData = QuizSchema.parse(body);
 
-    // Vérifier que le module existe et appartient à l'utilisateur
-    const module = await prisma.module.findFirst({
-      where: { 
-        id: moduleId,
-        formation: {
-          instructorId: authResult.user.id
-        }
-      }
+    // Vérifier que le module existe et permissions
+    const module = await prisma.module.findUnique({
+      where: { id: moduleId },
+      include: { formation: true }
     });
-
     if (!module) {
       return NextResponse.json(
-        { error: 'Module non trouvé ou non autorisé' },
+        { error: 'Module non trouvé' },
         { status: 404 }
       );
+    }
+    if (authResult.user.role !== 'ADMIN' && module.formation.instructorId !== authResult.user.id) {
+      return createAuthErrorResponse('Non autorisé', 403);
     }
 
     // Créer le quiz
@@ -111,10 +109,10 @@ export async function POST(
 // GET /api/modules/[id]/quiz - Récupérer le quiz d'un module
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: moduleId } = params;
+    const { id: moduleId } = await params;
 
     const quiz = await prisma.quiz.findUnique({
       where: { moduleId },
@@ -146,7 +144,7 @@ export async function GET(
 // PUT /api/modules/[id]/quiz - Mettre à jour un quiz
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -160,29 +158,25 @@ export async function PUT(
       return createAuthErrorResponse('Permissions insuffisantes', 403);
     }
 
-    const { id: moduleId } = params;
+    const { id: moduleId } = await params;
     const body = await request.json();
 
     // Valider les données
     const quizData = QuizSchema.parse(body);
 
-    // Vérifier que le quiz existe et appartient à l'utilisateur
-    const existingQuiz = await prisma.quiz.findFirst({
-      where: { 
-        moduleId,
-        module: {
-          formation: {
-            instructorId: authResult.user.id
-          }
-        }
-      }
+    // Vérifier que le quiz existe et permissions
+    const existingQuiz = await prisma.quiz.findUnique({
+      where: { moduleId },
+      include: { module: { include: { formation: true } } }
     });
-
     if (!existingQuiz) {
       return NextResponse.json(
-        { error: 'Quiz non trouvé ou non autorisé' },
+        { error: 'Quiz non trouvé' },
         { status: 404 }
       );
+    }
+    if (authResult.user.role !== 'ADMIN' && existingQuiz.module.formation.instructorId !== authResult.user.id) {
+      return createAuthErrorResponse('Non autorisé', 403);
     }
 
     // Supprimer les anciennes questions et créer les nouvelles
@@ -242,7 +236,7 @@ export async function PUT(
 // DELETE /api/modules/[id]/quiz - Supprimer un quiz
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Vérifier l'authentification
@@ -256,25 +250,21 @@ export async function DELETE(
       return createAuthErrorResponse('Permissions insuffisantes', 403);
     }
 
-    const { id: moduleId } = params;
+    const { id: moduleId } = await params;
 
-    // Vérifier que le quiz existe et appartient à l'utilisateur
-    const quiz = await prisma.quiz.findFirst({
-      where: { 
-        moduleId,
-        module: {
-          formation: {
-            instructorId: authResult.user.id
-          }
-        }
-      }
+    // Vérifier que le quiz existe et permissions
+    const quiz = await prisma.quiz.findUnique({
+      where: { moduleId },
+      include: { module: { include: { formation: true } } }
     });
-
     if (!quiz) {
       return NextResponse.json(
-        { error: 'Quiz non trouvé ou non autorisé' },
+        { error: 'Quiz non trouvé' },
         { status: 404 }
       );
+    }
+    if (authResult.user.role !== 'ADMIN' && quiz.module.formation.instructorId !== authResult.user.id) {
+      return createAuthErrorResponse('Non autorisé', 403);
     }
 
     // Supprimer le quiz (les questions seront supprimées automatiquement grâce à onDelete: Cascade)
